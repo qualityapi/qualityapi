@@ -1,0 +1,32 @@
+{
+    "name": "qualityapi",
+    "version": "0.0.1",
+    "description": "",
+    "license": "ISC",
+    "author": "",
+    "type": "module",
+    "main": "dist/index.js",
+    "scripts": {
+        "build": "tsc",
+        "prepublishOnly": "npm run build"
+    },
+    "dependencies": {
+        "next": "^16.1.6",
+        "next-auth": "^4.24.13",
+        "zod": "^4.3.6"
+    },
+    "devDependencies": {
+        "@types/next": "^8.0.7",
+        "@types/next-auth": "^3.15.0",
+        "@types/node": "^25.1.0",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.9.3"
+    },
+    "repository": {
+        "url": "https://github.com/LarsSK06/qualityapi",
+        "type": "git"
+    },
+    "files": [
+        "dist"
+    ]
+}
