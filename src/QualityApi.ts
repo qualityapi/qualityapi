@@ -1,11 +1,17 @@
 import Response from "./QualityApiResponse.ts";
 import Body from "./QualityApiBody.ts";
 import EndpointBuilder from "./QualityApiEndpointBuilder.ts";
+import QualityApiConfig from "./QualityApiConfig.ts";
+import Store from "./_internal/Store.ts";
 
 namespace QualityApi {
 
     export function builder() {
         return new EndpointBuilder();
+    }
+
+    export function config(options: QualityApiConfig) {
+        Store.NextAuth.set(options.nextAuth);
     }
 
     export namespace Responses {

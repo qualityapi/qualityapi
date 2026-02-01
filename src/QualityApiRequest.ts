@@ -1,12 +1,16 @@
-import type { User, Profile } from "next-auth";
-import type { NextApiRequest } from "next";
+import type { Session } from "next-auth";
 
 type QualityApiRequest<
-    Authorized extends boolean
+    Authorized extends boolean,
+    Body = unknown,
+    Params = unknown,
+    SearchParams = unknown
 > = {
-    user: Authorized extends true ? User : (User | null);
-    profile: Authorized extends true ? Profile : (Profile | null);
-    _request: NextApiRequest
+    session: Authorized extends true ? Session : (Session | null);
+    body: Body;
+    params: Params;
+    searchParams: SearchParams;
+    _request: Request
 };
 
 export default QualityApiRequest;

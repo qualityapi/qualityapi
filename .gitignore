@@ -1,4 +1,6 @@
 .idea/
-.test/
+test/
 dist/
 node_modules/
+
+tsconfig.tsbuildinfo
