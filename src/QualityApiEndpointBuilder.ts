@@ -1,16 +1,18 @@
-import Middleware from "./QualityApiMiddleware.ts";
-import QualityApi from "./QualityApi.ts";
-import QualityApiResponse from "./QualityApiResponse.ts";
-import QualityApiBody from "./QualityApiBody.ts";
-import QualityApiRequest from "./QualityApiRequest.ts";
-import Store from "./_internal/Store.ts";
-import Continue from "./Continue.ts";
+import QualityApi from "./QualityApi";
+import Store from "./_internal/./Store";
 
-import { Session } from "next-auth";
-import z, { ZodObject, ZodRawShape } from "zod";
+import { QualityApiResponse } from "./QualityApiResponse";
+import { Continue } from "./Continue";
+import { type QualityApiMiddleware as Middleware } from "./QualityApiMiddleware";
+import { type QualityApiBody } from "./QualityApiBody";
+import { type QualityApiRequest } from "./QualityApiRequest";
+import { type NextAuthResult, type Session } from "next-auth";
+import { formatZodError, urlSearchParamsToObj } from "./_internal/util-functions";
 
-class QualityApiEndpointBuilder<
-    Authorized extends boolean,
+import z, { ZodObject, type ZodRawShape } from "zod";
+
+export class QualityApiEndpointBuilder<
+    Authorized extends boolean = false,
     Body = unknown,
     Params = unknown,
     SearchParams = unknown
@@ -31,15 +33,7 @@ class QualityApiEndpointBuilder<
 
     public authorize() {
         this.middlewares.push(async () => {
-            const session = await Store.NextAuth.get().auth();
-
-            if (!session) {
-                this.session = null;
-
-                return QualityApi.Responses.unauthorized();
-            }
-
-            this.session = session;
+            if (!this.session) return QualityApi.Respond.unauthorized();
 
             return new Continue();
         });
@@ -60,21 +54,23 @@ class QualityApiEndpointBuilder<
                 let error;
 
                 try {
-                    error = JSON.parse(parseResult.error.message);
+                    error = formatZodError("Body", JSON.parse(parseResult.error.message));
                 }
                 catch {
                     error = parseResult.error.message;
                 }
 
-                return QualityApi.Responses.badRequest(error);
+                return QualityApi.Respond.badRequest(error);
             }
 
             this._body = parseResult.data;
+
+            return new Continue();
         });
 
         return this as QualityApiEndpointBuilder<
             Authorized,
-            z.infer<T>,
+            z.infer<ZodObject<T>>,
             Params,
             SearchParams
         >;
@@ -88,23 +84,25 @@ class QualityApiEndpointBuilder<
                 let error;
 
                 try {
-                    error = JSON.parse(parseResult.error.message);
+                    error = formatZodError("Parameters", JSON.parse(parseResult.error.message));
                 }
                 catch {
                     error = parseResult.error.message;
                 }
 
 
-                return QualityApi.Responses.badRequest(error);
+                return QualityApi.Respond.badRequest(error);
             }
 
             this._params = parseResult.data;
+
+            return new Continue();
         });
 
         return this as QualityApiEndpointBuilder<
             Authorized,
             Body,
-            z.infer<T>,
+            z.infer<ZodObject<T>>,
             SearchParams
         >;
     }
@@ -117,37 +115,45 @@ class QualityApiEndpointBuilder<
                 let error;
 
                 try {
-                    error = JSON.parse(parseResult.error.message);
+                    error = formatZodError("Search parameters", JSON.parse(parseResult.error.message));
                 }
                 catch {
                     error = parseResult.error.message;
                 }
 
-                return QualityApi.Responses.badRequest(error);
+                return QualityApi.Respond.badRequest(error);
             }
 
             this._searchParams = parseResult.data;
+
+            return new Continue();
         });
 
         return this as QualityApiEndpointBuilder<
             Authorized,
             Body,
             Params,
-            z.infer<T>
+            z.infer<ZodObject<T>>
         >;
     }
 
-    public endpoint<T extends QualityApiBody>(fn: (data: QualityApiRequest<Authorized, Body, Params, SearchParams>) => QualityApiResponse<T>) {
-        return async (nextRequest: Request, context: { params: {} }) => {
-            try {
-                this._body = nextRequest.json();
-            }
-            catch {
-                return QualityApi.Responses._(415);
+    public endpoint<T extends QualityApiBody>(fn: (data: QualityApiRequest<Authorized, Body, Params, SearchParams>) => QualityApiResponse<T> | Promise<QualityApiResponse<T>>) {
+        return async (nextRequest: Request, context: { params: Promise<{}> }) => {
+            this.session = await Store.get<NextAuthResult>("NextAuthConfig").auth();
+
+            if (nextRequest.method.toLowerCase() === "get")
+                this._body = null;
+            else {
+                try {
+                    this._body = await nextRequest.json();
+                }
+                catch (error) {
+                    return QualityApi.Respond._(415, { error: `${error}` }).toNextResponse();
+                }
             }
 
-            this._params = context.params;
-            this._searchParams = new URL(nextRequest.url).searchParams.entries();
+            this._params = await context.params;
+            this._searchParams = urlSearchParamsToObj(new URL(nextRequest.url).searchParams);
 
             for (const mw of this.middlewares) {
                 const execution = await mw({
@@ -158,19 +164,19 @@ class QualityApiEndpointBuilder<
                     _request: nextRequest
                 });
 
-                if (!(execution instanceof Continue)) return execution;
+                if (!(execution instanceof Continue)) return execution.toNextResponse();
             }
 
-            return fn({
+            const execFn = await fn({
                 session: this.session!,
                 body: this._body,
                 params: this._params,
                 searchParams: this._searchParams,
                 _request: nextRequest
             });
+
+            return execFn.toNextResponse();
         };
     }
 
 }
-
-export default QualityApiEndpointBuilder;

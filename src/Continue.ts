@@ -1,3 +1,1 @@
-class Continue {}
-
-export default Continue;
+export class Continue {}

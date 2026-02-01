@@ -1,29 +1,26 @@
-import { NextAuthResult } from "next-auth";
-
-class NotSet {}
-
-let nextAuth: NextAuthResult | NotSet = new NotSet();
+const KEY = "__QUALITYAPI__";
 
 namespace Store {
 
-    function verify(variable: any, variableName: string) {
-        if (variable instanceof NotSet) throw new Error(`Required variable "${variableName}" is not set!`);
-
-        return true;
+    function init() {
+        if (!(KEY in globalThis))
+            // @ts-ignore
+            globalThis[KEY] = new Map<string, any>();
     }
 
-    export namespace NextAuth {
-        export function get() {
-            verify(nextAuth, "nextAuth");
+    export function get<T>(key: string) {
+        init();
 
-            return nextAuth as NextAuthResult;
-        }
-
-        export function set(value: NextAuthResult) {
-            nextAuth = value;
-        }
+        // @ts-ignore
+        return globalThis[KEY].get(key);
     }
 
+    export function set(key: string, value: any) {
+        init();
+
+        // @ts-ignore
+        return globalThis[KEY].set(key, value);
+    }
 
 }
 

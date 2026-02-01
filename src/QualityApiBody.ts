@@ -1,5 +1,3 @@
-type QualityApiBody =
+export type QualityApiBody =
     {} |
     [];
-
-export default QualityApiBody;

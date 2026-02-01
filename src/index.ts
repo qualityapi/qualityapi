@@ -1,11 +1,11 @@
-import QualityApi from "./QualityApi.ts";
+import QualityApi from "./QualityApi";
 
-export type { default as Continue } from "./Continue.ts";
-export type { default as QualityApiBody } from "./QualityApiBody.ts";
-export type { default as QualityApiConfig } from "./QualityApiConfig.ts";
-export type { default as QualityApiEndpointBuilder } from "./QualityApiEndpointBuilder.ts";
-export type { default as QualityApiMiddleware } from "./QualityApiMiddleware.ts";
-export type { default as QualityApiRequest } from "./QualityApiRequest.ts";
-export type { default as QualityApiResponse } from "./QualityApiResponse.ts";
+export type { Continue } from "./Continue.ts";
+export type { QualityApiBody } from "./QualityApiBody.ts";
+export type { QualityApiConfig } from "./QualityApiConfig.ts";
+export type { QualityApiEndpointBuilder } from "./QualityApiEndpointBuilder.ts";
+export type { QualityApiMiddleware } from "./QualityApiMiddleware.ts";
+export type { QualityApiRequest } from "./QualityApiRequest.ts";
+export type { QualityApiResponse } from "./QualityApiResponse.ts";
 
 export default QualityApi;

@@ -1,6 +1,6 @@
-import QualityApiBody from "./QualityApiBody.ts";
+import { type QualityApiBody } from "./QualityApiBody";
 
-class QualityApiResponse<Body extends QualityApiBody> {
+export class QualityApiResponse<Body extends QualityApiBody> {
 
     public readonly status: number;
     public readonly body: Body | undefined;
@@ -10,6 +10,12 @@ class QualityApiResponse<Body extends QualityApiBody> {
         this.body = _body;
     }
 
-}
+    public toNextResponse() {
+        return (
+            this.status === 204
+                ? new Response(undefined, { status: this.status })
+                : Response.json(this.body ?? {}, { status: this.status })
+        );
+    }
 
-export default QualityApiResponse;
+}

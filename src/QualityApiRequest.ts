@@ -1,6 +1,6 @@
 import type { Session } from "next-auth";
 
-type QualityApiRequest<
+export type QualityApiRequest<
     Authorized extends boolean,
     Body = unknown,
     Params = unknown,
@@ -10,7 +10,5 @@ type QualityApiRequest<
     body: Body;
     params: Params;
     searchParams: SearchParams;
-    _request: Request
+    _request: Request;
 };
-
-export default QualityApiRequest;

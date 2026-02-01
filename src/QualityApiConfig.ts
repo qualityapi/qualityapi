@@ -1,7 +1,5 @@
-import { NextAuthResult } from "next-auth";
+import { type NextAuthResult } from "next-auth";
 
-type QualityApiConfig = {
+export type QualityApiConfig = {
     nextAuth: NextAuthResult;
 };
-
-export default QualityApiConfig;

@@ -1,8 +1,9 @@
-import Response from "./QualityApiResponse.ts";
-import Body from "./QualityApiBody.ts";
-import EndpointBuilder from "./QualityApiEndpointBuilder.ts";
-import QualityApiConfig from "./QualityApiConfig.ts";
-import Store from "./_internal/Store.ts";
+import Store from "./_internal/Store";
+
+import { QualityApiResponse as Response } from "./QualityApiResponse";
+import { QualityApiEndpointBuilder as EndpointBuilder } from "./QualityApiEndpointBuilder";
+import { type QualityApiBody as Body } from "./QualityApiBody";
+import { type QualityApiConfig } from "./QualityApiConfig";
 
 namespace QualityApi {
 
@@ -11,53 +12,53 @@ namespace QualityApi {
     }
 
     export function config(options: QualityApiConfig) {
-        Store.NextAuth.set(options.nextAuth);
+        Store.set("NextAuthConfig", options.nextAuth);
     }
 
-    export namespace Responses {
+    export namespace Respond {
 
         // 2xx (Success)
 
         export function ok<Json extends Body = any>(json?: Json) {
-            _(200, json);
+            return _(200, json);
         }
 
         export function created<Json extends Body = any>(json?: Json) {
-            _(201, json);
+            return _(201, json);
         }
 
         export function noContent() {
-            _(204);
+            return _(204);
         }
 
 
         // 4xx (Client error)
 
         export function badRequest<Json extends Body = any>(json?: Json) {
-            _(400, json);
+            return _(400, json);
         }
 
         export function unauthorized<Json extends Body = any>(json?: Json) {
-            _(401, json);
+            return _(401, json);
         }
 
         export function forbidden<Json extends Body = any>(json?: Json) {
-            _(403, json);
+            return _(403, json);
         }
 
         export function notFound<Json extends Body = any>(json?: Json) {
-            _(404, json);
+            return _(404, json);
         }
 
         export function conflict<Json extends Body = any>(json?: Json) {
-            _(409, json);
+            return _(409, json);
         }
 
 
         // 5xx (Server error)
 
         export function internalServerError<Json extends Body = any>(json: Json) {
-            _(500, json);
+            return _(500, json);
         }
 
 

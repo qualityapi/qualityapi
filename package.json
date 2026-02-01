@@ -1,11 +1,17 @@
 {
     "name": "qualityapi",
-    "version": "0.0.1",
-    "description": "",
-    "license": "ISC",
-    "author": "",
+    "version": "0.0.2",
     "type": "module",
     "main": "dist/index.js",
+    "types": "dist/types/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "require": "./dist/index.js",
+            "types": "./dist/types/index.d.ts"
+        }
+    },
+    "files": ["dist"],
     "scripts": {
         "build": "tsc",
         "prepublishOnly": "npm run build"
@@ -20,12 +26,5 @@
         "@types/node": "^25.1.0",
         "ts-node": "^10.9.2",
         "typescript": "^5.9.3"
-    },
-    "repository": {
-        "url": "https://github.com/LarsSK06/qualityapi",
-        "type": "git"
-    },
-    "files": [
-        "dist"
-    ]
+    }
 }
