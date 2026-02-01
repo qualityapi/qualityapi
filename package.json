@@ -26,5 +26,10 @@
         "@types/node": "^25.1.0",
         "ts-node": "^10.9.2",
         "typescript": "^5.9.3"
-    }
+    },
+    "repository": {
+        "url": "https://github.com/qualityapi/qualityapi",
+        "type": "git"
+    },
+    "license": "Apache-2.0"
 }
