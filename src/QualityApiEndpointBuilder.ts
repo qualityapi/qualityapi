@@ -25,6 +25,16 @@ export class QualityApiEndpointBuilder<
     private _params: any = null;
     private _searchParams: any = null;
 
+    private getRequestData(nextRequest: Request): QualityApiRequest<Authenticated, Body, Params, SearchParams> {
+        return {
+            session: this.session!,
+            body: this._body,
+            params: this._params,
+            searchParams: this._searchParams,
+            _request: nextRequest
+        };
+    }
+
     /** Adds a custom middleware function. */
     public middleware(fn: Middleware<Authenticated>) {
         this.middlewares.push(fn);
@@ -150,7 +160,10 @@ export class QualityApiEndpointBuilder<
         >;
     }
 
-    /** Defines the final function of the endpoint. This returns a Next.js-endpoint-compatible function with all middleware compiled. */
+    /**
+     * Defines the final function of the endpoint.
+     * This returns a Next.js-endpoint-compatible function with all middleware compiled.
+     */
     public endpoint<T extends QualityApiBody>(fn: (data: QualityApiRequest<Authenticated, Body, Params, SearchParams>) => QualityApiResponse<T> | Promise<QualityApiResponse<T>>) {
         return async (nextRequest: Request, context: { params: Promise<{}> }) => {
             this.session = await Store.get<NextAuthResult>("NextAuthConfig").auth();
@@ -170,24 +183,12 @@ export class QualityApiEndpointBuilder<
             this._searchParams = urlSearchParamsToObj(new URL(nextRequest.url).searchParams);
 
             for (const mw of this.middlewares) {
-                const execution = await mw({
-                    session: this.session,
-                    body: this._body,
-                    params: this._params,
-                    searchParams: this._searchParams,
-                    _request: nextRequest
-                });
+                const execution = await mw(this.getRequestData(nextRequest));
 
                 if (!(execution instanceof Continue)) return execution.toNextResponse();
             }
 
-            const execFn = await fn({
-                session: this.session!,
-                body: this._body,
-                params: this._params,
-                searchParams: this._searchParams,
-                _request: nextRequest
-            });
+            const execFn = await fn(this.getRequestData(nextRequest));
 
             return execFn.toNextResponse();
         };
