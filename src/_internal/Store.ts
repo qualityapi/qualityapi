@@ -12,7 +12,7 @@ namespace Store {
         init();
 
         // @ts-ignore
-        return globalThis[KEY].get(key);
+        return globalThis[KEY].get(key) as T;
     }
 
     export function set(key: string, value: any) {
