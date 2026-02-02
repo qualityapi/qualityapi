@@ -12,7 +12,7 @@ import { formatZodError, urlSearchParamsToObj } from "./_internal/util-functions
 import z, { ZodObject, type ZodRawShape } from "zod";
 
 export class QualityApiEndpointBuilder<
-    Authorized extends boolean = false,
+    Authenticated extends boolean = false,
     Body = unknown,
     Params = unknown,
     SearchParams = unknown
@@ -25,13 +25,15 @@ export class QualityApiEndpointBuilder<
     private _params: any = null;
     private _searchParams: any = null;
 
-    public middleware(fn: Middleware<Authorized>) {
+    /** Adds a custom middleware function. */
+    public middleware(fn: Middleware<Authenticated>) {
         this.middlewares.push(fn);
 
         return this;
     }
 
-    public authorize() {
+    /** Adds internal middleware that verifies end user's authentication. */
+    public authenticate() {
         this.middlewares.push(async () => {
             if (!this.session) return QualityApi.Respond.unauthorized();
 
@@ -46,6 +48,7 @@ export class QualityApiEndpointBuilder<
         >;
     }
 
+    /** Adds internal middleware that validates the request body. */
     public body<T extends ZodRawShape>(schema: ZodObject<T>) {
         this.middlewares.push(async ({ body }) => {
             const parseResult = await schema.safeParseAsync(body);
@@ -69,13 +72,18 @@ export class QualityApiEndpointBuilder<
         });
 
         return this as QualityApiEndpointBuilder<
-            Authorized,
+            Authenticated,
             z.infer<ZodObject<T>>,
             Params,
             SearchParams
         >;
     }
 
+    /**
+     * Adds internal middleware that validates the request's parameters (slugs).
+     *
+     * @param schema Should only contain coarce fields, as all parameters are of type string when fetched from Next.js. Additionally, if further validation is needed, you can add another `.params` directly after the coarce one.
+     */
     public params<T extends ZodRawShape>(schema: ZodObject<T>) {
         this.middlewares.push(async ({ params }) => {
             const parseResult = await schema.safeParseAsync(params);
@@ -100,13 +108,18 @@ export class QualityApiEndpointBuilder<
         });
 
         return this as QualityApiEndpointBuilder<
-            Authorized,
+            Authenticated,
             Body,
             z.infer<ZodObject<T>>,
             SearchParams
         >;
     }
 
+    /**
+     * Adds internal middleware that validates the request's search parameters (query parameters).
+     *
+     * @param schema Should mainly contain coarce fields, as all search parameters are of type string or string array when fetched from Next.js. Additionally, if further validation is needed, you can add another `.params` directly after the coarce one.
+     */
     public searchParams<T extends ZodRawShape>(schema: ZodObject<T>) {
         this.middlewares.push(async ({ searchParams }) => {
             const parseResult = await schema.safeParseAsync(searchParams);
@@ -130,14 +143,15 @@ export class QualityApiEndpointBuilder<
         });
 
         return this as QualityApiEndpointBuilder<
-            Authorized,
+            Authenticated,
             Body,
             Params,
             z.infer<ZodObject<T>>
         >;
     }
 
-    public endpoint<T extends QualityApiBody>(fn: (data: QualityApiRequest<Authorized, Body, Params, SearchParams>) => QualityApiResponse<T> | Promise<QualityApiResponse<T>>) {
+    /** Defines the final function of the endpoint. This returns a Next.js-endpoint-compatible function with all middleware compiled. */
+    public endpoint<T extends QualityApiBody>(fn: (data: QualityApiRequest<Authenticated, Body, Params, SearchParams>) => QualityApiResponse<T> | Promise<QualityApiResponse<T>>) {
         return async (nextRequest: Request, context: { params: Promise<{}> }) => {
             this.session = await Store.get<NextAuthResult>("NextAuthConfig").auth();
 
