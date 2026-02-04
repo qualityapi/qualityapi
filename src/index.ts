@@ -7,5 +7,6 @@ export type { QualityApiEndpointBuilder } from "./QualityApiEndpointBuilder.ts";
 export type { QualityApiMiddleware } from "./QualityApiMiddleware.ts";
 export type { QualityApiRequest } from "./QualityApiRequest.ts";
 export type { QualityApiResponse } from "./QualityApiResponse.ts";
+export { QualityApiContentType } from "./QualityApiContentType";
 
 export default QualityApi;

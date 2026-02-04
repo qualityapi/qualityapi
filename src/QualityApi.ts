@@ -3,17 +3,32 @@ import Store from "./_internal/Store";
 import { QualityApiResponse as Response } from "./QualityApiResponse";
 import { QualityApiEndpointBuilder as EndpointBuilder } from "./QualityApiEndpointBuilder";
 import { type QualityApiBody as Body } from "./QualityApiBody";
-import { type QualityApiConfig } from "./QualityApiConfig";
+import { type QualityApiConfig as Config } from "./QualityApiConfig";
+import { type QualityApiContentType as ContentType } from "./QualityApiContentType";
+
+type ContentTypeMap = {
+    [ContentType.JSON]: Awaited<ReturnType<Request["json"]>>;
+    [ContentType.Blob]: Awaited<ReturnType<Request["blob"]>>;
+    [ContentType.Bytes]: Awaited<ReturnType<Request["bytes"]>>;
+    [ContentType.Text]: Awaited<ReturnType<Request["text"]>>;
+    [ContentType.ArrayBuffer]: Awaited<ReturnType<Request["arrayBuffer"]>>;
+    [ContentType.FormData]: Awaited<ReturnType<Request["formData"]>>;
+};
 
 namespace QualityApi {
 
     /** Starts the building process of an endpoint. Use `QualityApiEndpointBuilder`'s built-in methods (ex. `authenticate`, `body`) to build the endpoint. */
-    export function builder() {
-        return new EndpointBuilder();
+    export function builder<T extends ContentType>(contentType: T) {
+        return new EndpointBuilder<
+            false,
+            ContentTypeMap[T],
+            unknown,
+            unknown
+        >(contentType);
     }
 
     /** Defines the required configuration for Quality API. This should ideally be invoked inside the `next.config.[js|ts]` file. */
-    export function config(options: QualityApiConfig) {
+    export function config(options: Config) {
         Store.set("NextAuthConfig", options.nextAuth);
     }
 

@@ -8,14 +8,15 @@ import { type QualityApiBody } from "./QualityApiBody";
 import { type QualityApiRequest } from "./QualityApiRequest";
 import { type NextAuthResult, type Session } from "next-auth";
 import { formatZodError, urlSearchParamsToObj } from "./_internal/util-functions";
+import { QualityApiContentType as ContentType } from "./QualityApiContentType";
 
 import z, { ZodObject, type ZodRawShape } from "zod";
 
 export class QualityApiEndpointBuilder<
-    Authenticated extends boolean = false,
-    Body = unknown,
-    Params = unknown,
-    SearchParams = unknown
+    Authenticated extends boolean,
+    Body,
+    Params,
+    SearchParams
 > {
 
     private middlewares: Middleware<any>[] = [];
@@ -25,6 +26,12 @@ export class QualityApiEndpointBuilder<
     private _params: any = null;
     private _searchParams: any = null;
 
+    private _contentType: ContentType;
+
+    constructor(contentType: ContentType) {
+        this._contentType = contentType;
+    }
+
     private getRequestData(nextRequest: Request): QualityApiRequest<Authenticated, Body, Params, SearchParams> {
         return {
             session: this.session!,
@@ -33,6 +40,24 @@ export class QualityApiEndpointBuilder<
             searchParams: this._searchParams,
             _request: nextRequest
         };
+    }
+
+    private async parseRequestBody(request: Request) {
+        return new Promise<any>(async (resolve, reject) => {
+            try {
+                switch (this._contentType) {
+                    case ContentType.JSON: return resolve(await request.json());
+                    case ContentType.Blob: return resolve(await request.blob());
+                    case ContentType.Bytes: return resolve(await request.bytes());
+                    case ContentType.Text: return resolve(await request.text());
+                    case ContentType.ArrayBuffer: return resolve(await request.arrayBuffer());
+                    case ContentType.FormData: return resolve(await request.formData());
+                }
+            }
+            catch {
+                reject();
+            }
+        });
     }
 
     /** Adds a custom middleware function. */
@@ -92,7 +117,7 @@ export class QualityApiEndpointBuilder<
     /**
      * Adds internal middleware that validates the request's parameters (slugs).
      *
-     * @param schema Should only contain coarce fields, as all parameters are of type string when fetched from Next.js. Additionally, if further validation is needed, you can add another `.params` directly after the coarce one.
+     * @param schema Should only contain coerce fields, as all parameters are of type string when fetched from Next.js. Additionally, if further validation is needed, you can add another `.params` directly after the coarce one.
      */
     public params<T extends ZodRawShape>(schema: ZodObject<T>) {
         this.middlewares.push(async ({ params }) => {
@@ -128,7 +153,7 @@ export class QualityApiEndpointBuilder<
     /**
      * Adds internal middleware that validates the request's search parameters (query parameters).
      *
-     * @param schema Should mainly contain coarce fields, as all search parameters are of type string or string array when fetched from Next.js. Additionally, if further validation is needed, you can add another `.params` directly after the coarce one.
+     * @param schema Should mainly contain coerce fields, as all search parameters are of type string or string array when fetched from Next.js. Additionally, if further validation is needed, you can add another `.params` directly after the coarce one.
      */
     public searchParams<T extends ZodRawShape>(schema: ZodObject<T>) {
         this.middlewares.push(async ({ searchParams }) => {
@@ -172,10 +197,10 @@ export class QualityApiEndpointBuilder<
                 this._body = null;
             else {
                 try {
-                    this._body = await nextRequest.json();
+                    this._body = await this.parseRequestBody(nextRequest);
                 }
-                catch (error) {
-                    return QualityApi.Respond._(415, { error: `${error}` }).toNextResponse();
+                catch {
+                    return QualityApi.Respond._(415).toNextResponse();
                 }
             }
 
