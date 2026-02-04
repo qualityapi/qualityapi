@@ -1,4 +1,11 @@
+# General
 .idea/
-.test/
+test/
 dist/
 node_modules/
+
+# TypeScript build info
+tsconfig.tsbuildinfo
+
+# Tarball files
+*.tgz

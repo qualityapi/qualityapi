@@ -1,6 +1,9 @@
-import QualityApiResponse from "./QualityApiResponse.ts";
-import QualityApiRequest from "./QualityApiRequest.ts";
+import { QualityApiResponse } from "./QualityApiResponse";
+import { Continue } from "./Continue";
+import { type QualityApiRequest } from "./QualityApiRequest";
 
-type QualityApiMiddleware<Authorized extends boolean> = (data: QualityApiRequest<Authorized>) => QualityApiResponse<any> | void;
-
-export default QualityApiMiddleware;
+export type QualityApiMiddleware<Authenticated extends boolean> =
+    (data: QualityApiRequest<Authenticated>) =>
+        QualityApiResponse<any> |
+        Promise<QualityApiResponse<any>> |
+        Continue;
