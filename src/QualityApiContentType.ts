@@ -1,4 +1,4 @@
-export enum QualityApiContentType {
+export enum QualityApiRequestContentType {
     JSON,
     Blob,
     Bytes,

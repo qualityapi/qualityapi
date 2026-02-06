@@ -1,16 +1,15 @@
 import QualityApi from "./QualityApi";
 import Store from "./_internal/./Store";
 
-import { QualityApiResponse } from "./QualityApiResponse";
 import { Continue } from "./Continue";
 import { type QualityApiMiddleware as Middleware } from "./QualityApiMiddleware";
 import { type QualityApiBody } from "./QualityApiBody";
 import { type QualityApiRequest } from "./QualityApiRequest";
 import { type NextAuthResult, type Session } from "next-auth";
-import { formatZodError, urlSearchParamsToObj } from "./_internal/util-functions";
-import { QualityApiContentType as ContentType } from "./QualityApiContentType";
+import { formatZodError, testContentHeader, urlSearchParamsToObj } from "./_internal/util-functions";
+import { QualityApiRequestContentType as ContentType } from "./QualityApiContentType";
 
-import z, { ZodObject, type ZodRawShape } from "zod";
+import z, { ZodObject, type ZodRawShape, type ZodType } from "zod";
 
 export class QualityApiEndpointBuilder<
     Authenticated extends boolean,
@@ -84,7 +83,7 @@ export class QualityApiEndpointBuilder<
     }
 
     /** Adds internal middleware that validates the request body. */
-    public body<T extends ZodRawShape>(schema: ZodObject<T>) {
+    public body<T extends ZodType>(schema: T) {
         this.middlewares.push(async ({ body }) => {
             const parseResult = await schema.safeParseAsync(body);
 
@@ -108,7 +107,7 @@ export class QualityApiEndpointBuilder<
 
         return this as QualityApiEndpointBuilder<
             Authenticated,
-            z.infer<ZodObject<T>>,
+            z.infer<T>,
             Params,
             SearchParams
         >;
@@ -189,7 +188,7 @@ export class QualityApiEndpointBuilder<
      * Defines the final function of the endpoint.
      * This returns a Next.js-endpoint-compatible function with all middleware compiled.
      */
-    public endpoint<T extends QualityApiBody>(fn: (data: QualityApiRequest<Authenticated, Body, Params, SearchParams>) => QualityApiResponse<T> | Promise<QualityApiResponse<T>>) {
+    public endpoint<T extends QualityApiBody>(fn: (data: QualityApiRequest<Authenticated, Body, Params, SearchParams>) => (Response | Promise<Response>)) {
         return async (nextRequest: Request, context: { params: Promise<{}> }) => {
             this.session = await Store.get<NextAuthResult>("NextAuthConfig").auth();
 
@@ -200,7 +199,7 @@ export class QualityApiEndpointBuilder<
                     this._body = await this.parseRequestBody(nextRequest);
                 }
                 catch {
-                    return QualityApi.Respond._(415).toNextResponse();
+                    return QualityApi.Respond._(415);
                 }
             }
 
@@ -210,12 +209,18 @@ export class QualityApiEndpointBuilder<
             for (const mw of this.middlewares) {
                 const execution = await mw(this.getRequestData(nextRequest));
 
-                if (!(execution instanceof Continue)) return execution.toNextResponse();
+                if (execution instanceof Continue) continue;
+
+                testContentHeader(execution.headers);
+
+                return execution;
             }
 
-            const execFn = await fn(this.getRequestData(nextRequest));
+            const fnExec = await fn(this.getRequestData(nextRequest));
 
-            return execFn.toNextResponse();
+            testContentHeader(fnExec.headers);
+
+            return fnExec;
         };
     }
 
