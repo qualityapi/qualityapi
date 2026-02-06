@@ -1,25 +1,25 @@
-const KEY = "__QUALITYAPI__";
+import { GLOBAL_THIS_NAMESPACE } from "./globals";
 
 namespace Store {
 
     function init() {
-        if (!(KEY in globalThis))
+        if (!(GLOBAL_THIS_NAMESPACE in globalThis))
             // @ts-ignore
-            globalThis[KEY] = new Map<string, any>();
+            globalThis[GLOBAL_THIS_NAMESPACE] = new Map<string, any>();
     }
 
     export function get<T>(key: string) {
         init();
 
         // @ts-ignore
-        return globalThis[KEY].get(key) as T;
+        return globalThis[GLOBAL_THIS_NAMESPACE].get(key) as T;
     }
 
     export function set(key: string, value: any) {
         init();
 
         // @ts-ignore
-        return globalThis[KEY].set(key, value);
+        return globalThis[GLOBAL_THIS_NAMESPACE].set(key, value);
     }
 
 }

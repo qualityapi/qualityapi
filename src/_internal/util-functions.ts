@@ -1,3 +1,7 @@
+import type { QualityApiBody } from "../QualityApiBody";
+import { BLOB_CONTENT_TYPE } from "./globals";
+import { Logger } from "./Logger";
+
 export function urlSearchParamsToObj(urlSearchParams: URLSearchParams) {
     let result: { [_: string]: any } = {};
 
@@ -31,4 +35,19 @@ export function formatZodError(step: string, error: { path: string[]; message: s
     catch {
         return error;
     }
+}
+
+export function getBodyContentType(body?: QualityApiBody) {
+    if (body instanceof Blob) return BLOB_CONTENT_TYPE;
+    else if (typeof body === "string") return "text/plain";
+    else return "application/json";
+}
+
+export function testContentHeader(headers: Headers) {
+    const header = headers.get("Content-Type");
+
+    if (!header) return;
+    if (header?.split(";")[0] !== BLOB_CONTENT_TYPE) return;
+
+    Logger.warn("Specify a \"Content-Type\" header for responses of type blob");
 }
