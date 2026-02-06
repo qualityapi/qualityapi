@@ -25,10 +25,10 @@ export class QualityApiEndpointBuilder<
     private _params: any = null;
     private _searchParams: any = null;
 
-    private _contentType: ContentType;
+    private _contentType: ContentType | null;
 
-    constructor(contentType: ContentType) {
-        this._contentType = contentType;
+    constructor(contentType?: ContentType) {
+        this._contentType = contentType ?? null;
     }
 
     private getRequestData(nextRequest: Request): QualityApiRequest<Authenticated, Body, Params, SearchParams> {
@@ -51,6 +51,8 @@ export class QualityApiEndpointBuilder<
                     case ContentType.Text: return resolve(await request.text());
                     case ContentType.ArrayBuffer: return resolve(await request.arrayBuffer());
                     case ContentType.FormData: return resolve(await request.formData());
+
+                    default: return null;
                 }
             }
             catch {

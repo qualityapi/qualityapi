@@ -18,7 +18,7 @@ type ContentTypeMap = {
 namespace QualityApi {
 
     /** Starts the building process of an endpoint. Use `QualityApiEndpointBuilder`'s built-in methods (ex. `authenticate`, `body`) to build the endpoint. */
-    export function builder<T extends ContentType>(contentType: T) {
+    export function builder<T extends ContentType>(contentType?: T) {
         return new EndpointBuilder<
             false,
             ContentTypeMap[T],
