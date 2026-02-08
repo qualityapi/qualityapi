@@ -77,6 +77,9 @@ namespace QualityApi {
         /** 403 Forbidden */
         export const forbidden = generate(403);
 
+        /** 404 Not found */
+        export const notFound = generate(404);
+
         /** 409 Conflict */
         export const conflict = generate(400);
 
