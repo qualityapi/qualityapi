@@ -5,6 +5,7 @@ import { type QualityApiBody } from "./QualityApiBody";
 import { type QualityApiConfig as Config } from "./QualityApiConfig";
 import { type QualityApiRequestContentType as ContentType } from "./QualityApiContentType";
 import { getBodyContentType } from "./_internal/util-functions";
+import { Next } from "./Next";
 
 type ContentTypeMap = {
     [ContentType.JSON]: Awaited<ReturnType<Request["json"]>>;
@@ -30,6 +31,11 @@ namespace QualityApi {
     /** Defines the required configuration for Quality API. This should ideally be invoked inside the `next.config.[js|ts]` file. */
     export function config(options: Config) {
         Store.set("NextAuthConfig", options.nextAuth);
+    }
+
+    /** Alias for `new Next()`. */
+    export function next() {
+        return new Next();
     }
 
     /** Contains the most commonly used HTTP response codes. Use `_` function to define your own. */

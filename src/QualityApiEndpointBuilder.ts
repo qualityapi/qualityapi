@@ -1,7 +1,7 @@
 import QualityApi from "./QualityApi";
 import Store from "./_internal/./Store";
 
-import { Continue } from "./Continue";
+import { Next } from "./Next";
 import { type QualityApiMiddleware as Middleware } from "./QualityApiMiddleware";
 import { type QualityApiBody } from "./QualityApiBody";
 import { type QualityApiRequest } from "./QualityApiRequest";
@@ -73,7 +73,7 @@ export class QualityApiEndpointBuilder<
         this.middlewares.push(async () => {
             if (!this.session) return QualityApi.Respond.unauthorized();
 
-            return new Continue();
+            return new Next();
         });
 
         return this as QualityApiEndpointBuilder<
@@ -104,7 +104,7 @@ export class QualityApiEndpointBuilder<
 
             this._body = parseResult.data;
 
-            return new Continue();
+            return new Next();
         });
 
         return this as QualityApiEndpointBuilder<
@@ -140,7 +140,7 @@ export class QualityApiEndpointBuilder<
 
             this._params = parseResult.data;
 
-            return new Continue();
+            return new Next();
         });
 
         return this as QualityApiEndpointBuilder<
@@ -175,7 +175,7 @@ export class QualityApiEndpointBuilder<
 
             this._searchParams = parseResult.data;
 
-            return new Continue();
+            return new Next();
         });
 
         return this as QualityApiEndpointBuilder<
@@ -211,7 +211,7 @@ export class QualityApiEndpointBuilder<
             for (const mw of this.middlewares) {
                 const execution = await mw(this.getRequestData(nextRequest));
 
-                if (execution instanceof Continue) continue;
+                if (execution instanceof Next) continue;
 
                 testContentHeader(execution.headers);
 
