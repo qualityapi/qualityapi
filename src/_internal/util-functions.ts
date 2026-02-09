@@ -1,7 +1,7 @@
 import { type ResponseBody } from "../ResponseBody";
-import { Logger } from "./Logger";
 import { type Configuration } from "../Configuration";
-import { BLOB_DEFAULT_CONTENT_TYPE, CONFIGURATION_STORE_KEY } from "./globals";
+import { Logger } from "./Logger";
+import { BLOB_DEFAULT_CONTENT_TYPE } from "./globals";
 
 import jwt from "jsonwebtoken";
 

@@ -3,6 +3,7 @@ import InternalStore from "../_internal/InternalStore";
 import { type Configuration } from "../Configuration";
 import { CONFIGURATION_STORE_KEY } from "../_internal/globals";
 import { QualityApiError } from "../QualityApiError";
+import { Logger } from "../_internal/Logger";
 
 namespace QualityApiDb {
 
@@ -31,6 +32,23 @@ namespace QualityApiDb {
         }
         catch (error) {
             throw new QualityApiError(`Could not execute initializing SQL script!\n${error}`);
+        }
+
+        const unappliedMigrations = await config.database.getUnappliedMigrations();
+
+        for (const { name, sql } of unappliedMigrations) {
+            Logger.process(`Applying migration '${name}'...`);
+
+            try {
+                await query(sql);
+
+                await config.database.insertAppliedMigration(name);
+
+                Logger.success(`Applied migration '${name}'!`);
+            }
+            catch (error) {
+                throw new QualityApiError(`Could not apply '${name}'!\n${error}`)
+            }
         }
     }
 

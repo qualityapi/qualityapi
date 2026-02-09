@@ -94,13 +94,6 @@ export type Configuration = {
     database?: {
 
         /**
-         * The name of the database table to contain the already applied SQL migrations.
-         *
-         * @default qualityapi__applied_migrations
-         */
-        appliedMigrationsTableName?: string;
-
-        /**
          * The function to execute the initializing SQL script in the database.
          *
          * This is intended to create a table for the applied migrations if it doesn't already exist.
@@ -113,6 +106,9 @@ export type Configuration = {
          * This should compare the total migrations to the already applied migrations stored in the database.
          */
         getUnappliedMigrations: () => SqlMigration[] | Promise<SqlMigration[]>;
+
+        /** The function to insert the newly applied SQL migration into the table for applied migrations. */
+        insertAppliedMigration: (migrationName: string) => void | Promise<void>;
 
         /**
          * The function to execute the SQL query, and return the results.
