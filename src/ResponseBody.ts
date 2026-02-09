@@ -1,4 +1,4 @@
-export type QualityApiBody =
+export type ResponseBody =
     {} |
     [] |
     Blob |

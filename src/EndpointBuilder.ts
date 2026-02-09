@@ -1,17 +1,23 @@
+import InternalStore from "./_internal/InternalStore";
 import QualityApi from "./QualityApi";
-import Store from "./_internal/./Store";
+import formatZodError from "./_internal/util-functions/formatZodError";
+import getUserFromHeaders from "./_internal/util-functions/getUserFromHeaders";
+import testContentHeader from "./_internal/util-functions/testContentHeader";
+import urlSearchParamsToObj from "./_internal/util-functions/urlSearchParamsToObj";
 
-import { Continue } from "./Continue";
-import { type QualityApiMiddleware as Middleware } from "./QualityApiMiddleware";
-import { type QualityApiBody } from "./QualityApiBody";
-import { type QualityApiRequest } from "./QualityApiRequest";
-import { type NextAuthResult, type Session } from "next-auth";
-import { formatZodError, testContentHeader, urlSearchParamsToObj } from "./_internal/util-functions";
-import { QualityApiRequestContentType as ContentType } from "./QualityApiContentType";
+import { Next } from "./Next";
+import { type Middleware } from "./Middleware";
+import { type ResponseBody } from "./ResponseBody";
+import { type Request } from "./Request";
+import { type User } from "./auth";
+import { type Configuration } from "./Configuration";
+import { RequestContentType as ContentType } from "./RequestContentType";
+import { Respond } from "./Respond";
+import { CONFIGURATION_STORE_KEY } from "./_internal/globals";
 
 import z, { ZodObject, type ZodRawShape, type ZodType } from "zod";
 
-export class QualityApiEndpointBuilder<
+export class EndpointBuilder<
     Authenticated extends boolean,
     Body,
     Params,
@@ -19,7 +25,7 @@ export class QualityApiEndpointBuilder<
 > {
 
     private middlewares: Middleware<any>[] = [];
-    private session: Session | null = null;
+    private user: User | null = null;
 
     private _body: any = null;
     private _params: any = null;
@@ -31,9 +37,9 @@ export class QualityApiEndpointBuilder<
         this._contentType = contentType ?? null;
     }
 
-    private getRequestData(nextRequest: Request): QualityApiRequest<Authenticated, Body, Params, SearchParams> {
+    private getRequestData(nextRequest: globalThis.Request): Request<Authenticated, Body, Params, SearchParams> {
         return {
-            session: this.session!,
+            user: this.user!,
             body: this._body,
             params: this._params,
             searchParams: this._searchParams,
@@ -41,7 +47,7 @@ export class QualityApiEndpointBuilder<
         };
     }
 
-    private async parseRequestBody(request: Request) {
+    private async parseRequestBody(request: globalThis.Request) {
         return new Promise<any>(async (resolve, reject) => {
             try {
                 switch (this._contentType) {
@@ -52,7 +58,7 @@ export class QualityApiEndpointBuilder<
                     case ContentType.ArrayBuffer: return resolve(await request.arrayBuffer());
                     case ContentType.FormData: return resolve(await request.formData());
 
-                    default: return null;
+                    default: return resolve(null);
                 }
             }
             catch {
@@ -71,12 +77,12 @@ export class QualityApiEndpointBuilder<
     /** Adds internal middleware that verifies end user's authentication. */
     public authenticate() {
         this.middlewares.push(async () => {
-            if (!this.session) return QualityApi.Respond.unauthorized();
+            if (!this.user) return Respond.unauthorized();
 
-            return new Continue();
+            return QualityApi.next();
         });
 
-        return this as QualityApiEndpointBuilder<
+        return this as EndpointBuilder<
             true,
             Body,
             Params,
@@ -99,15 +105,15 @@ export class QualityApiEndpointBuilder<
                     error = parseResult.error.message;
                 }
 
-                return QualityApi.Respond.badRequest(error);
+                return Respond.badRequest(error);
             }
 
             this._body = parseResult.data;
 
-            return new Continue();
+            return QualityApi.next();
         });
 
-        return this as QualityApiEndpointBuilder<
+        return this as EndpointBuilder<
             Authenticated,
             z.infer<T>,
             Params,
@@ -118,7 +124,8 @@ export class QualityApiEndpointBuilder<
     /**
      * Adds internal middleware that validates the request's parameters (slugs).
      *
-     * @param schema Should only contain coerce fields, as all parameters are of type string when fetched from Next.js. Additionally, if further validation is needed, you can add another `.params` directly after the coarce one.
+     * @param schema Should only contain coerce fields, as all parameters are of type string when fetched from Next.js.
+     * Additionally, if further validation is needed, you can add another `.params` directly after the coerce one.
      */
     public params<T extends ZodRawShape>(schema: ZodObject<T>) {
         this.middlewares.push(async ({ params }) => {
@@ -135,15 +142,15 @@ export class QualityApiEndpointBuilder<
                 }
 
 
-                return QualityApi.Respond.badRequest(error);
+                return Respond.badRequest(error);
             }
 
             this._params = parseResult.data;
 
-            return new Continue();
+            return QualityApi.next();
         });
 
-        return this as QualityApiEndpointBuilder<
+        return this as EndpointBuilder<
             Authenticated,
             Body,
             z.infer<ZodObject<T>>,
@@ -154,7 +161,8 @@ export class QualityApiEndpointBuilder<
     /**
      * Adds internal middleware that validates the request's search parameters (query parameters).
      *
-     * @param schema Should mainly contain coerce fields, as all search parameters are of type string or string array when fetched from Next.js. Additionally, if further validation is needed, you can add another `.params` directly after the coarce one.
+     * @param schema Should mainly contain coerce fields, as all search parameters are of type string or string array when fetched from Next.js.
+     * Additionally, if further validation is needed, you can add another `.params` directly after the coerce one.
      */
     public searchParams<T extends ZodRawShape>(schema: ZodObject<T>) {
         this.middlewares.push(async ({ searchParams }) => {
@@ -170,15 +178,15 @@ export class QualityApiEndpointBuilder<
                     error = parseResult.error.message;
                 }
 
-                return QualityApi.Respond.badRequest(error);
+                return Respond.badRequest(error);
             }
 
             this._searchParams = parseResult.data;
 
-            return new Continue();
+            return QualityApi.next();
         });
 
-        return this as QualityApiEndpointBuilder<
+        return this as EndpointBuilder<
             Authenticated,
             Body,
             Params,
@@ -190,9 +198,16 @@ export class QualityApiEndpointBuilder<
      * Defines the final function of the endpoint.
      * This returns a Next.js-endpoint-compatible function with all middleware compiled.
      */
-    public endpoint<T extends QualityApiBody>(fn: (data: QualityApiRequest<Authenticated, Body, Params, SearchParams>) => (Response | Promise<Response>)) {
-        return async (nextRequest: Request, context: { params: Promise<{}> }) => {
-            this.session = await Store.get<NextAuthResult>("NextAuthConfig").auth();
+    public endpoint<T extends ResponseBody>(fn: (data: Request<Authenticated, Body, Params, SearchParams>) => (Response | Promise<Response>)) {
+        return async (nextRequest: globalThis.Request, context: { params: Promise<{}> }) => {
+            const config = InternalStore.get<Configuration>(CONFIGURATION_STORE_KEY);
+
+            if (config.authentication)
+                this.user = await getUserFromHeaders(
+                    nextRequest.headers,
+                    config.authentication.secret,
+                    config.authentication.getUser
+                );
 
             if (nextRequest.method.toLowerCase() === "get")
                 this._body = null;
@@ -201,7 +216,7 @@ export class QualityApiEndpointBuilder<
                     this._body = await this.parseRequestBody(nextRequest);
                 }
                 catch {
-                    return QualityApi.Respond._(415);
+                    return Respond._(415);
                 }
             }
 
@@ -211,7 +226,7 @@ export class QualityApiEndpointBuilder<
             for (const mw of this.middlewares) {
                 const execution = await mw(this.getRequestData(nextRequest));
 
-                if (execution instanceof Continue) continue;
+                if (execution instanceof Next) continue;
 
                 testContentHeader(execution.headers);
 
