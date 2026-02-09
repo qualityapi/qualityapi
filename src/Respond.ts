@@ -8,7 +8,10 @@ import jwtpkg from "jsonwebtoken";
 import InternalStore from "./_internal/InternalStore";
 import getBodyContentType from "./_internal/util-functions/getBodyContentType";
 
-/** Contains the most commonly used HTTP response codes. Use `_` function to define your own. */
+/**
+ * Contains the most commonly used HTTP response codes.
+ * Use `_` function to define your own.
+ */
 export namespace Respond {
 
     function generate(statusCode: number) {
