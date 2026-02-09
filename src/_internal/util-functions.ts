@@ -1,6 +1,9 @@
-import type { QualityApiBody } from "../QualityApiBody";
-import { BLOB_CONTENT_TYPE } from "./globals";
+import { type ResponseBody } from "../ResponseBody";
 import { Logger } from "./Logger";
+import { type Configuration } from "../Configuration";
+import { BLOB_DEFAULT_CONTENT_TYPE, CONFIGURATION_STORE_KEY } from "./globals";
+
+import jwt from "jsonwebtoken";
 
 export function urlSearchParamsToObj(urlSearchParams: URLSearchParams) {
     let result: { [_: string]: any } = {};
@@ -37,8 +40,8 @@ export function formatZodError(step: string, error: { path: string[]; message: s
     }
 }
 
-export function getBodyContentType(body?: QualityApiBody) {
-    if (body instanceof Blob) return BLOB_CONTENT_TYPE;
+export function getBodyContentType(body?: ResponseBody) {
+    if (body instanceof Blob) return BLOB_DEFAULT_CONTENT_TYPE;
     else if (typeof body === "string") return "text/plain";
     else return "application/json";
 }
@@ -47,7 +50,32 @@ export function testContentHeader(headers: Headers) {
     const header = headers.get("Content-Type");
 
     if (!header) return;
-    if (header?.split(";")[0] !== BLOB_CONTENT_TYPE) return;
+    if (header?.split(";")[0] !== BLOB_DEFAULT_CONTENT_TYPE) return;
 
     Logger.warn("Specify a \"Content-Type\" header for responses of type blob");
+}
+
+export async function getUserFromHeaders(
+    headers: Headers,
+    secret: string,
+    getUserFromJwt: NonNullable<Configuration["authentication"]>["getUser"]
+) {
+    const header = headers.get("Cookie");
+
+    if (!header) return null;
+
+    const split = header.split("=");
+
+    if (split[0] !== "jwt") return null;
+
+    const token = split.splice(1, -1).join("=");
+
+    try {
+        const verification = jwt.verify(token, secret);
+
+        return await getUserFromJwt(JSON.parse(verification.toString()));
+    }
+    catch {
+        return null;
+    }
 }

@@ -1,11 +1,13 @@
 import QualityApi from "./QualityApi";
 
-export type { QualityApiBody } from "./QualityApiBody";
-export type { QualityApiConfig } from "./QualityApiConfig";
-export type { QualityApiEndpointBuilder } from "./QualityApiEndpointBuilder";
-export type { QualityApiMiddleware } from "./QualityApiMiddleware";
-export type { QualityApiRequest } from "./QualityApiRequest";
+export type { ResponseBody } from "./ResponseBody";
+export type { Configuration } from "./Configuration";
+export type { EndpointBuilder } from "./EndpointBuilder";
+export type { Middleware } from "./Middleware";
+export type { Request } from "./Request";
+export type { User } from "./User";
+export type { JWT } from "./JWT";
 export { Next } from "./Next";
-export { QualityApiRequestContentType } from "./QualityApiContentType";
+export { RequestContentType } from "./RequestContentType";
 
 export default QualityApi;

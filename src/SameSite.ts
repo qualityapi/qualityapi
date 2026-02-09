@@ -1,0 +1,1 @@
+export type SameSite = "Strict" | "Lax" | "None";

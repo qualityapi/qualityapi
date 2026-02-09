@@ -1,6 +1,4 @@
-import type { Session } from "next-auth";
-
-export type QualityApiRequest<
+export type Request<
     Authenticated extends boolean,
     Body = unknown,
     Params = unknown,
@@ -12,7 +10,8 @@ export type QualityApiRequest<
      *
      * This can be mutated through module augmentation. See [NextAuth module augmentation](https://next-auth.js.org/getting-started/typescript#module-augmentation).
      */
-    session: Authenticated extends true ? Session : (Session | null);
+    // session: Authenticated extends true ? Session : (Session | null);
+    session: null;
 
     /** The request body. Use the `.body` middleware to validate this through your Zod schema. */
     body: Body;
@@ -24,6 +23,6 @@ export type QualityApiRequest<
     searchParams: SearchParams;
 
     /** The raw Next.js request. */
-    _request: Request;
+    _request: globalThis.Request;
 
 };
