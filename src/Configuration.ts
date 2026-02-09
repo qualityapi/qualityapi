@@ -94,11 +94,11 @@ export type Configuration = {
     database?: {
 
         /**
-         * The function to execute the initializing SQL script in the database.
+         * The script to initialize the SQL database.
          *
-         * This is intended to create a table for the applied migrations if it doesn't already exist.
+         * This is intended to create a table for the applied migrations if it doesn't already exist, and is run on every project startup.
          */
-        executeInitSql: () => void | Promise<void>;
+        initSql: string;
 
         /**
          * The function to get the unapplied SQL migrations (in chronological order).

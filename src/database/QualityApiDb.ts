@@ -28,7 +28,7 @@ namespace QualityApiDb {
         if (!config.database) throw new QualityApiError("Database is not configured!");
 
         try {
-            await config.database.executeInitSql();
+            await query(config.database.initSql);
         }
         catch (error) {
             throw new QualityApiError(`Could not execute initializing SQL script!\n${error}`);
