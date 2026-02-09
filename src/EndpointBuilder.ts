@@ -1,5 +1,9 @@
 import InternalStore from "./_internal/InternalStore";
 import QualityApi from "./QualityApi";
+import formatZodError from "./_internal/util-functions/formatZodError";
+import getUserFromHeaders from "./_internal/util-functions/getUserFromHeaders";
+import testContentHeader from "./_internal/util-functions/testContentHeader";
+import urlSearchParamsToObj from "./_internal/util-functions/urlSearchParamsToObj";
 
 import { Next } from "./Next";
 import { type Middleware } from "./Middleware";
@@ -7,12 +11,6 @@ import { type ResponseBody } from "./ResponseBody";
 import { type Request } from "./Request";
 import { type User } from "./auth";
 import { type Configuration } from "./Configuration";
-import {
-    formatZodError,
-    getUserFromHeaders,
-    testContentHeader,
-    urlSearchParamsToObj
-} from "./_internal/util-functions";
 import { RequestContentType as ContentType } from "./RequestContentType";
 import { Respond } from "./Respond";
 import { CONFIGURATION_STORE_KEY } from "./_internal/globals";

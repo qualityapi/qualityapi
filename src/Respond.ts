@@ -1,12 +1,12 @@
 import { type JWT } from "./auth";
 import { type ResponseBody } from "./ResponseBody";
 import { type Configuration } from "./Configuration";
-import { getBodyContentType } from "./_internal/util-functions";
 import { Logger } from "./_internal/Logger";
 import { CONFIGURATION_STORE_KEY } from "./_internal/globals";
 
 import jwtpkg from "jsonwebtoken";
 import InternalStore from "./_internal/InternalStore";
+import getBodyContentType from "./_internal/util-functions/getBodyContentType";
 
 /** Contains the most commonly used HTTP response codes. Use `_` function to define your own. */
 export namespace Respond {
