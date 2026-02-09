@@ -1,11 +1,11 @@
-import Store from "./_internal/./Store";
+import InternalStore from "./_internal/InternalStore";
 import QualityApi from "./QualityApi";
 
 import { Next } from "./Next";
 import { type Middleware } from "./Middleware";
 import { type ResponseBody } from "./ResponseBody";
 import { type Request } from "./Request";
-import { type User } from "./User";
+import { type User } from "./auth";
 import { type Configuration } from "./Configuration";
 import {
     formatZodError,
@@ -202,7 +202,7 @@ export class EndpointBuilder<
      */
     public endpoint<T extends ResponseBody>(fn: (data: Request<Authenticated, Body, Params, SearchParams>) => (Response | Promise<Response>)) {
         return async (nextRequest: globalThis.Request, context: { params: Promise<{}> }) => {
-            const config = Store.get<Configuration>(CONFIGURATION_STORE_KEY);
+            const config = InternalStore.get<Configuration>(CONFIGURATION_STORE_KEY);
 
             if (config.authentication)
                 this.user = await getUserFromHeaders(

@@ -1,6 +1,5 @@
-import { type SameSite } from "./SameSite";
-import { type JWT } from "./JWT";
-import { type User } from "./User";
+import { type SameSite, type JWT, type User } from "./auth";
+import { type QueryResult, type SqlMigration } from "./database";
 import { type Algorithm } from "jsonwebtoken";
 
 export type Configuration = {
@@ -85,6 +84,43 @@ export type Configuration = {
          */
         getUser: (jwt: JWT) => User | Promise<User>;
 
-    }
+    };
+
+    /**
+     * The configuration of the out-of-the-box SQL database system.
+     *
+     * As of today, this is only intended for SQL databases, but other databases can be used through other solutions.
+     */
+    database?: {
+
+        /**
+         * The name of the database table to contain the already applied SQL migrations.
+         *
+         * @default qualityapi__applied_migrations
+         */
+        appliedMigrationsTableName?: string;
+
+        /**
+         * The function to execute the initializing SQL script in the database.
+         *
+         * This is intended to create a table for the applied migrations if it doesn't already exist.
+         */
+        executeInitSql: () => void | Promise<void>;
+
+        /**
+         * The function to get the unapplied SQL migrations (in chronological order).
+         *
+         * This should compare the total migrations to the already applied migrations stored in the database.
+         */
+        getUnappliedMigrations: () => SqlMigration[] | Promise<SqlMigration[]>;
+
+        /**
+         * The function to execute the SQL query, and return the results.
+         *
+         * The `bindingParams` parameter should be used here to prevent SQL injections.
+         */
+        query: <Row>(sql: string, bindingParams: any[]) => QueryResult<Row> | Promise<QueryResult<Row>>;
+
+    };
 
 };

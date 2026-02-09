@@ -1,6 +1,6 @@
 import { GLOBALTHIS_NAMESPACE } from "./globals";
 
-namespace Store {
+namespace InternalStore {
 
     function init() {
         if (!(GLOBALTHIS_NAMESPACE in globalThis))
@@ -24,4 +24,4 @@ namespace Store {
 
 }
 
-export default Store;
+export default InternalStore;

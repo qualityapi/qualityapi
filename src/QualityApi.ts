@@ -1,4 +1,4 @@
-import Store from "./_internal/Store";
+import InternalStore from "./_internal/InternalStore";
 
 import { EndpointBuilder } from "./EndpointBuilder";
 import { CONFIGURATION_STORE_KEY } from "./_internal/globals";
@@ -29,7 +29,7 @@ namespace QualityApi {
 
     /** Defines the required configuration for Quality API. This should ideally be invoked inside the `next.config.[js|ts]` file. */
     export function configure(options: Configuration) {
-        Store.set(CONFIGURATION_STORE_KEY, options);
+        InternalStore.set(CONFIGURATION_STORE_KEY, options);
     }
 
     /** Alias for `new Next()`. */

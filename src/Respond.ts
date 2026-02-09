@@ -1,4 +1,4 @@
-import { type JWT } from "./JWT";
+import { type JWT } from "./auth";
 import { type ResponseBody } from "./ResponseBody";
 import { type Configuration } from "./Configuration";
 import { getBodyContentType } from "./_internal/util-functions";
@@ -6,7 +6,7 @@ import { Logger } from "./_internal/Logger";
 import { CONFIGURATION_STORE_KEY } from "./_internal/globals";
 
 import jwtpkg from "jsonwebtoken";
-import Store from "./_internal/Store";
+import InternalStore from "./_internal/InternalStore";
 
 /** Contains the most commonly used HTTP response codes. Use `_` function to define your own. */
 export namespace Respond {
@@ -69,7 +69,7 @@ export namespace Respond {
         contentType: string = getBodyContentType(body),
         jwt?: JWT
     ) {
-        const config = Store.get<Configuration>(CONFIGURATION_STORE_KEY);
+        const config = InternalStore.get<Configuration>(CONFIGURATION_STORE_KEY);
 
         const isBlob = body instanceof Blob;
         const isString = typeof body === "string";
