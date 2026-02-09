@@ -1,3 +1,5 @@
+import type { User } from "./User";
+
 export type Request<
     Authenticated extends boolean,
     Body = unknown,
@@ -6,12 +8,10 @@ export type Request<
 > = {
 
     /**
-     * If authenticated, the session of the authenticated user.
-     *
-     * This can be mutated through module augmentation. See [NextAuth module augmentation](https://next-auth.js.org/getting-started/typescript#module-augmentation).
+     * If authenticated, is set to the authenticated user.
+     * This can be mutated through module augmentation, and is `{}` by default..
      */
-    // session: Authenticated extends true ? Session : (Session | null);
-    session: null;
+    user: Authenticated extends true ? User : (User | null);
 
     /** The request body. Use the `.body` middleware to validate this through your Zod schema. */
     body: Body;

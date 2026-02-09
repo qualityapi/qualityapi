@@ -68,12 +68,12 @@ export async function getUserFromHeaders(
 
     if (split[0] !== "jwt") return null;
 
-    const token = split.splice(1, -1).join("=");
+    const token = split.splice(1).join("=");
 
     try {
         const verification = jwt.verify(token, secret);
 
-        return await getUserFromJwt(JSON.parse(verification.toString()));
+        return await getUserFromJwt(verification);
     }
     catch {
         return null;

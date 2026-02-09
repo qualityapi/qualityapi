@@ -1,11 +1,12 @@
-import QualityApi from "./QualityApi";
 import Store from "./_internal/./Store";
+import QualityApi from "./QualityApi";
 
 import { Next } from "./Next";
 import { type Middleware } from "./Middleware";
 import { type ResponseBody } from "./ResponseBody";
 import { type Request } from "./Request";
 import { type User } from "./User";
+import { type Configuration } from "./Configuration";
 import {
     formatZodError,
     getUserFromHeaders,
@@ -14,10 +15,9 @@ import {
 } from "./_internal/util-functions";
 import { RequestContentType as ContentType } from "./RequestContentType";
 import { Respond } from "./Respond";
+import { CONFIGURATION_STORE_KEY } from "./_internal/globals";
 
 import z, { ZodObject, type ZodRawShape, type ZodType } from "zod";
-import type { Configuration } from "./Configuration";
-import { CONFIGURATION_STORE_KEY } from "./_internal/globals";
 
 export class EndpointBuilder<
     Authenticated extends boolean,
@@ -41,8 +41,7 @@ export class EndpointBuilder<
 
     private getRequestData(nextRequest: globalThis.Request): Request<Authenticated, Body, Params, SearchParams> {
         return {
-            // session: this.session!,
-            session: null!,
+            user: this.user!,
             body: this._body,
             params: this._params,
             searchParams: this._searchParams,
@@ -61,7 +60,7 @@ export class EndpointBuilder<
                     case ContentType.ArrayBuffer: return resolve(await request.arrayBuffer());
                     case ContentType.FormData: return resolve(await request.formData());
 
-                    default: return null;
+                    default: return resolve(null);
                 }
             }
             catch {
@@ -82,7 +81,7 @@ export class EndpointBuilder<
         this.middlewares.push(async () => {
             if (!this.user) return Respond.unauthorized();
 
-            return new Next();
+            return QualityApi.next();
         });
 
         return this as EndpointBuilder<
@@ -113,7 +112,7 @@ export class EndpointBuilder<
 
             this._body = parseResult.data;
 
-            return new Next();
+            return QualityApi.next();
         });
 
         return this as EndpointBuilder<
@@ -127,7 +126,8 @@ export class EndpointBuilder<
     /**
      * Adds internal middleware that validates the request's parameters (slugs).
      *
-     * @param schema Should only contain coerce fields, as all parameters are of type string when fetched from Next.js. Additionally, if further validation is needed, you can add another `.params` directly after the coerce one.
+     * @param schema Should only contain coerce fields, as all parameters are of type string when fetched from Next.js.
+     * Additionally, if further validation is needed, you can add another `.params` directly after the coerce one.
      */
     public params<T extends ZodRawShape>(schema: ZodObject<T>) {
         this.middlewares.push(async ({ params }) => {
@@ -149,7 +149,7 @@ export class EndpointBuilder<
 
             this._params = parseResult.data;
 
-            return new Next();
+            return QualityApi.next();
         });
 
         return this as EndpointBuilder<
@@ -163,7 +163,8 @@ export class EndpointBuilder<
     /**
      * Adds internal middleware that validates the request's search parameters (query parameters).
      *
-     * @param schema Should mainly contain coerce fields, as all search parameters are of type string or string array when fetched from Next.js. Additionally, if further validation is needed, you can add another `.params` directly after the coerce one.
+     * @param schema Should mainly contain coerce fields, as all search parameters are of type string or string array when fetched from Next.js.
+     * Additionally, if further validation is needed, you can add another `.params` directly after the coerce one.
      */
     public searchParams<T extends ZodRawShape>(schema: ZodObject<T>) {
         this.middlewares.push(async ({ searchParams }) => {
@@ -184,7 +185,7 @@ export class EndpointBuilder<
 
             this._searchParams = parseResult.data;
 
-            return new Next();
+            return QualityApi.next();
         });
 
         return this as EndpointBuilder<
@@ -237,8 +238,6 @@ export class EndpointBuilder<
             const fnExec = await fn(this.getRequestData(nextRequest));
 
             testContentHeader(fnExec.headers);
-
-            fnExec.headers.getSetCookie()
 
             return fnExec;
         };

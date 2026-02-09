@@ -29,8 +29,6 @@ export namespace Respond {
     }
 
 
-    // 2xx - Success
-
     /** 200 OK */
     export const ok = generate(200);
 
@@ -42,9 +40,6 @@ export namespace Respond {
 
     /** 204 No content */
     export const noContent = generateNoBody(204);
-
-
-    // 4xx - Client error
 
     /** 400 Bad request */
     export const badRequest = generate(400);
@@ -60,9 +55,6 @@ export namespace Respond {
 
     /** 409 Conflict */
     export const conflict = generate(400);
-
-
-    // 5xx - Client error
 
     /** 500 Internal server error */
     export const internalServerError = generate(500);
@@ -96,12 +88,16 @@ export namespace Respond {
 
         if (jwt) {
             if (config.authentication) {
-                const token = jwtpkg.sign(jwt, config.authentication.secret);
+                const token = jwtpkg.sign(jwt, config.authentication.secret, {
+                    algorithm: config.authentication.jwt.algorithm ?? "HS512",
+                    expiresIn: config.authentication.jwt.lifetime
+                });
 
                 response.headers.append("Set-Cookie", [
                     `jwt=${token};`,
                     `SameSite=${config.authentication.cookie.sameSite};`,
                     `Max-Age=${config.authentication.cookie.maxAge};`,
+                    "Path=/;",
                     config.authentication.cookie.secure ? "Secure;" : "",
                     config.authentication.cookie.httpOnly ? "HttpOnly;" : ""
                 ].filter(Boolean).join(" "));

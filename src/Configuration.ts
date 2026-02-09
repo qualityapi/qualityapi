@@ -1,23 +1,88 @@
 import { type SameSite } from "./SameSite";
 import { type JWT } from "./JWT";
 import { type User } from "./User";
+import { type Algorithm } from "jsonwebtoken";
 
 export type Configuration = {
 
     /** The configuration of the out-of-the-box authentication system. */
     authentication?: {
 
-        /** The secret used to encrypt JWTs. */
+        /**
+         * The secret used to encrypt and validate JWTs.
+         *
+         * This should _not_ be hard-coded, but rather put in an environment variable.
+         *
+         * @see [Node.js | Environment variables](https://nodejs.org/en/learn/command-line/how-to-read-environment-variables-from-nodejs)
+         */
         secret: string;
 
+        /**
+         * How the JWTs should be configured.
+         *
+         * @see [JWT Debugger | Introduction to JSON Web Tokens](https://www.jwt.io/introduction)
+         */
+        jwt: {
+
+            /**
+             * The algorithm used to sign the JWTs.
+             *
+             * @default HS512
+             */
+            algorithm?: Exclude<Algorithm, "none">;
+
+            /**
+             * The lifetime of the JWT in seconds.
+             *
+             * If the backend receives an expired JWT, it is deemed as invalid.
+             */
+            lifetime: number;
+
+        };
+
+        /** How the cookies should be configured. */
         cookie: {
+
+            /**
+             * Whether or not the `HttpOnly` flag should be included in the cookie.
+             *
+             * When this is enabled, it prevents JavaScript from fetching the cookie - only the server and the browser itself can access it.
+             */
             httpOnly: boolean;
+
+            /**
+             * Whether or not the `Secure` flag should be included in the cookie.
+             *
+             * When this is enabled, the cookie will _only_ be sent from the frontend if the protocol is secure (`https`).
+             *
+             * This is _required_ when `sameSite` is set to `None`;
+             */
             secure: boolean;
+
+            /**
+             * The security level of the cookie regarding cross-site requests.
+             *
+             * **Strict:** The cookie is _only_ sent for same-site requests.
+             *
+             * **Lax:** The cookie is sent for same-site requests, as well as top-level navigation with safe methods.
+             *
+             * **None:** The cookie is sent for all requests - both same-site and cross-site. This _requires_ the `Secure` flag.
+             */
             sameSite: SameSite;
+
+            /**
+             * The lifetime of the cookie in seconds.
+             *
+             * When the cookie expires after this timespan, it is automatically deleted by the browser.
+             */
             maxAge: number;
         };
 
-        /** The factory function to get the user from the given JWT. */
+        /**
+         * The factory function to get the user from the given JWT.
+         *
+         * When a valid JWT is received from the frontend, and validated, this function is run, which then sets the `user` parameter in the request data.
+         */
         getUser: (jwt: JWT) => User | Promise<User>;
 
     }
