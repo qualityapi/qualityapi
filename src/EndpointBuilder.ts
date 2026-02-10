@@ -14,6 +14,7 @@ import { type Configuration } from "./Configuration";
 import { RequestContentType as ContentType } from "./RequestContentType";
 import { Respond } from "./Respond";
 import { CONFIGURATION_STORE_KEY } from "./_internal/globals";
+import { Logger } from "./_internal/Logger";
 
 import z, { ZodObject, type ZodRawShape, type ZodType } from "zod";
 
@@ -23,6 +24,8 @@ export class EndpointBuilder<
     Params,
     SearchParams
 > {
+
+    private config: Configuration = InternalStore.get<Configuration>(CONFIGURATION_STORE_KEY);
 
     private middlewares: Middleware<any>[] = [];
     private user: User | null = null;
@@ -76,6 +79,9 @@ export class EndpointBuilder<
 
     /** Adds internal middleware that verifies end user's authentication. */
     public authenticate() {
+        if (!this.config.authentication)
+            Logger.warn("`.authenticate` middleware is defined, but authentication is not configured!");
+
         this.middlewares.push(async () => {
             if (!this.user) return Respond.unauthorized();
 
@@ -92,7 +98,11 @@ export class EndpointBuilder<
 
     /** Adds internal middleware that validates the request body. */
     public body<T extends ZodType>(schema: T) {
+        if (this._contentType === null)
+            Logger.warn("`.body` middleware is defined, but no content type is given!");
+
         this.middlewares.push(async ({ body }) => {
+
             const parseResult = await schema.safeParseAsync(body);
 
             if (!parseResult.success) {
@@ -200,13 +210,11 @@ export class EndpointBuilder<
      */
     public endpoint<T extends ResponseBody>(fn: (data: Request<Authenticated, Body, Params, SearchParams>) => (Response | Promise<Response>)) {
         return async (nextRequest: globalThis.Request, context: { params: Promise<{}> }) => {
-            const config = InternalStore.get<Configuration>(CONFIGURATION_STORE_KEY);
-
-            if (config.authentication)
+            if (this.config.authentication)
                 this.user = await getUserFromHeaders(
                     nextRequest.headers,
-                    config.authentication.secret,
-                    config.authentication.getUser
+                    this.config.authentication.secret,
+                    this.config.authentication.getUser
                 );
 
             if (nextRequest.method.toLowerCase() === "get")
