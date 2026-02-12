@@ -24,12 +24,10 @@
         "prepublishOnly": "npm run build"
     },
     "dependencies": {
-        "jsonwebtoken": "^9.0.3",
         "next": "^16.1.6",
         "zod": "^4.3.6"
     },
     "devDependencies": {
-        "@types/jsonwebtoken": "^9.0.10",
         "@types/next": "^8.0.7",
         "@types/node": "^25.1.0",
         "ts-node": "^10.9.2",

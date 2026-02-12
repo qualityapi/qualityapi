@@ -1,7 +1,6 @@
 import InternalStore from "./_internal/InternalStore";
 import QualityApi from "./QualityApi";
 import formatZodError from "./_internal/util-functions/formatZodError";
-import getUserFromHeaders from "./_internal/util-functions/getUserFromHeaders";
 import testContentHeader from "./_internal/util-functions/testContentHeader";
 import urlSearchParamsToObj from "./_internal/util-functions/urlSearchParamsToObj";
 
@@ -9,12 +8,12 @@ import { Next } from "./Next";
 import { type Middleware } from "./Middleware";
 import { type ResponseBody } from "./ResponseBody";
 import { type Request } from "./Request";
-import { type User } from "./auth";
 import { type Configuration } from "./Configuration";
+import { type User } from "./User";
 import { RequestContentType as ContentType } from "./RequestContentType";
-import { Respond } from "./Respond";
-import { CONFIGURATION_STORE_KEY } from "./_internal/globals";
 import { Logger } from "./_internal/Logger";
+import { StatusCode } from "./StatusCode";
+import { CONFIGURATION_STORE_KEY } from "./_internal/globals";
 
 import z, { ZodObject, type ZodRawShape, type ZodType } from "zod";
 
@@ -83,7 +82,7 @@ export class EndpointBuilder<
             Logger.warn("`.authenticate` middleware is defined, but authentication is not configured!");
 
         this.middlewares.push(async () => {
-            if (!this.user) return Respond.unauthorized();
+            if (!this.user) return QualityApi.respond(StatusCode.Unauthorized);
 
             return QualityApi.next();
         });
@@ -115,7 +114,7 @@ export class EndpointBuilder<
                     error = parseResult.error.message;
                 }
 
-                return Respond.badRequest(error);
+                return QualityApi.respond(StatusCode.BadRequest, { body: error });
             }
 
             this._body = parseResult.data;
@@ -151,8 +150,7 @@ export class EndpointBuilder<
                     error = parseResult.error.message;
                 }
 
-
-                return Respond.badRequest(error);
+                return QualityApi.respond(StatusCode.BadRequest, { body: error });
             }
 
             this._params = parseResult.data;
@@ -188,7 +186,7 @@ export class EndpointBuilder<
                     error = parseResult.error.message;
                 }
 
-                return Respond.badRequest(error);
+                return QualityApi.respond(StatusCode.BadRequest, { body: error });
             }
 
             this._searchParams = parseResult.data;
@@ -210,12 +208,7 @@ export class EndpointBuilder<
      */
     public endpoint<T extends ResponseBody>(fn: (data: Request<Authenticated, Body, Params, SearchParams>) => (Response | Promise<Response>)) {
         return async (nextRequest: globalThis.Request, context: { params: Promise<{}> }) => {
-            if (this.config.authentication)
-                this.user = await getUserFromHeaders(
-                    nextRequest.headers,
-                    this.config.authentication.secret,
-                    this.config.authentication.getUser
-                );
+            this.user = await this.config.authentication?.authenticate(nextRequest) ?? null;
 
             if (nextRequest.method.toLowerCase() === "get")
                 this._body = null;
@@ -224,7 +217,7 @@ export class EndpointBuilder<
                     this._body = await this.parseRequestBody(nextRequest);
                 }
                 catch {
-                    return Respond._(415);
+                    return QualityApi.respond(StatusCode.UnsupportedMediaType);
                 }
             }
 

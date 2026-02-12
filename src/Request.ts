@@ -1,4 +1,4 @@
-import type { User } from "./auth";
+import { type User } from "./User";
 
 export type Request<
     Authenticated extends boolean,
