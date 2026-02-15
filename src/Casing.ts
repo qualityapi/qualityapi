@@ -52,7 +52,7 @@ export namespace Casing {
                 !!i &&
                 !Array.isArray(i) &&
                 typeof i === "object"
-                    ? _toCamelCase(i)
+                    ? toCamelCase(i)
                     : i
             ) as T;
         }
