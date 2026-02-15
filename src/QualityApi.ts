@@ -17,8 +17,11 @@ type ContentTypeMap = {
 
 namespace QualityApi {
 
-    /** Starts the building process of an endpoint. Use `EndpointBuilder`'s built-in methods (ex. `authenticate`, `body`) to build the endpoint. */
-    export function builder<T extends RequestContentType>(contentType?: T) {
+    /**
+     * Starts the building process of an endpoint.
+     * Use class `EndpointBuilder`'s built-in methods (ex. `authenticate`, `body`) to build the endpoint.
+     */
+    export function createEndpointBuilder<T extends RequestContentType>(contentType?: T) {
         return new EndpointBuilder<
             false,
             ContentTypeMap[T],
@@ -27,12 +30,15 @@ namespace QualityApi {
         >(contentType);
     }
 
-    /** Defines the required configuration for Quality API. This should ideally be invoked inside the `next.config.[js|ts]` file. */
+    /**
+     * Defines the required configuration for Quality API.
+     * This should ideally be invoked inside the `next.config.[js|ts]` file.
+     */
     export function configure(options: Configuration) {
         InternalStore.set(CONFIGURATION_STORE_KEY, options);
     }
 
-    /** Alias for `new Next()`. */
+    /** Shortcut for `new Next()`. */
     export function next() {
         return new Next();
     }

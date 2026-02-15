@@ -1,6 +1,6 @@
 {
     "name": "qualityapi",
-    "version": "1.0.0-alpha.4",
+    "version": "1.0.0-alpha.5",
     "type": "module",
     "main": "dist/index.js",
     "types": "dist/types/index.d.ts",
@@ -14,11 +14,6 @@
             "import": "./dist/auth/index.js",
             "require": "./dist/auth/index.js",
             "types": "./dist/auth/index.d.ts"
-        },
-        "./database": {
-            "import": "./dist/database/index.js",
-            "require": "./dist/database/index.js",
-            "types": "./dist/database/index.d.ts"
         }
     },
     "files": [
@@ -29,12 +24,10 @@
         "prepublishOnly": "npm run build"
     },
     "dependencies": {
-        "jsonwebtoken": "^9.0.3",
         "next": "^16.1.6",
         "zod": "^4.3.6"
     },
     "devDependencies": {
-        "@types/jsonwebtoken": "^9.0.10",
         "@types/next": "^8.0.7",
         "@types/node": "^25.1.0",
         "ts-node": "^10.9.2",

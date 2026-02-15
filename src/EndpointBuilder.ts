@@ -1,7 +1,6 @@
 import InternalStore from "./_internal/InternalStore";
 import QualityApi from "./QualityApi";
 import formatZodError from "./_internal/util-functions/formatZodError";
-import getUserFromHeaders from "./_internal/util-functions/getUserFromHeaders";
 import testContentHeader from "./_internal/util-functions/testContentHeader";
 import urlSearchParamsToObj from "./_internal/util-functions/urlSearchParamsToObj";
 
@@ -9,10 +8,11 @@ import { Next } from "./Next";
 import { type Middleware } from "./Middleware";
 import { type ResponseBody } from "./ResponseBody";
 import { type Request } from "./Request";
-import { type User } from "./auth";
 import { type Configuration } from "./Configuration";
+import { type User } from "./User";
 import { RequestContentType as ContentType } from "./RequestContentType";
-import { Respond } from "./Respond";
+import { Logger } from "./_internal/Logger";
+import { StatusCode } from "./StatusCode";
 import { CONFIGURATION_STORE_KEY } from "./_internal/globals";
 
 import z, { ZodObject, type ZodRawShape, type ZodType } from "zod";
@@ -23,6 +23,8 @@ export class EndpointBuilder<
     Params,
     SearchParams
 > {
+
+    private config: Configuration = InternalStore.get<Configuration>(CONFIGURATION_STORE_KEY);
 
     private middlewares: Middleware<any>[] = [];
     private user: User | null = null;
@@ -76,8 +78,11 @@ export class EndpointBuilder<
 
     /** Adds internal middleware that verifies end user's authentication. */
     public authenticate() {
+        if (!this.config.authentication)
+            Logger.warn("`.authenticate` middleware is defined, but authentication is not configured!");
+
         this.middlewares.push(async () => {
-            if (!this.user) return Respond.unauthorized();
+            if (!this.user) return new Response(undefined, { status: StatusCode.Unauthorized });
 
             return QualityApi.next();
         });
@@ -92,7 +97,11 @@ export class EndpointBuilder<
 
     /** Adds internal middleware that validates the request body. */
     public body<T extends ZodType>(schema: T) {
+        if (this._contentType === null)
+            Logger.warn("`.body` middleware is defined, but no content type is given!");
+
         this.middlewares.push(async ({ body }) => {
+
             const parseResult = await schema.safeParseAsync(body);
 
             if (!parseResult.success) {
@@ -105,7 +114,7 @@ export class EndpointBuilder<
                     error = parseResult.error.message;
                 }
 
-                return Respond.badRequest(error);
+                return Response.json(error, { status: StatusCode.BadRequest });
             }
 
             this._body = parseResult.data;
@@ -141,8 +150,7 @@ export class EndpointBuilder<
                     error = parseResult.error.message;
                 }
 
-
-                return Respond.badRequest(error);
+                return Response.json(error, { status: StatusCode.BadRequest });
             }
 
             this._params = parseResult.data;
@@ -178,7 +186,7 @@ export class EndpointBuilder<
                     error = parseResult.error.message;
                 }
 
-                return Respond.badRequest(error);
+                return Response.json(error, { status: StatusCode.BadRequest });
             }
 
             this._searchParams = parseResult.data;
@@ -200,14 +208,7 @@ export class EndpointBuilder<
      */
     public endpoint<T extends ResponseBody>(fn: (data: Request<Authenticated, Body, Params, SearchParams>) => (Response | Promise<Response>)) {
         return async (nextRequest: globalThis.Request, context: { params: Promise<{}> }) => {
-            const config = InternalStore.get<Configuration>(CONFIGURATION_STORE_KEY);
-
-            if (config.authentication)
-                this.user = await getUserFromHeaders(
-                    nextRequest.headers,
-                    config.authentication.secret,
-                    config.authentication.getUser
-                );
+            this.user = await this.config.authentication?.authenticate(nextRequest) ?? null;
 
             if (nextRequest.method.toLowerCase() === "get")
                 this._body = null;
@@ -216,7 +217,7 @@ export class EndpointBuilder<
                     this._body = await this.parseRequestBody(nextRequest);
                 }
                 catch {
-                    return Respond._(415);
+                    return new Response(undefined, { status: StatusCode.UnsupportedMediaType });
                 }
             }
 

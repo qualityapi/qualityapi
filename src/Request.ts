@@ -1,4 +1,4 @@
-import type { User } from "./auth";
+import { type User } from "./User";
 
 export type Request<
     Authenticated extends boolean,
@@ -9,7 +9,7 @@ export type Request<
 
     /**
      * If authenticated, is set to the authenticated user.
-     * This can be mutated through module augmentation, and is `{}` by default..
+     * This can be mutated through module augmentation, and is `{}` by default.
      */
     user: Authenticated extends true ? User : (User | null);
 
