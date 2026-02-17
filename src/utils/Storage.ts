@@ -1,4 +1,4 @@
-import { END_USER_STORAGE_NAMESPACE_KEY } from "./_internal/globals";
+import { END_USER_STORAGE_NAMESPACE_KEY } from "../_internal/globals";
 
 type StorageMap = Map<string, any>;
 

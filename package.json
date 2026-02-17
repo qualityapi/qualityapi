@@ -1,6 +1,6 @@
 {
     "name": "qualityapi",
-    "version": "1.0.0-alpha.5",
+    "version": "1.0.0-alpha.6",
     "type": "module",
     "main": "dist/index.js",
     "types": "dist/types/index.d.ts",
@@ -10,10 +10,20 @@
             "require": "./dist/index.js",
             "types": "./dist/index.d.ts"
         },
-        "./auth": {
-            "import": "./dist/auth/index.js",
-            "require": "./dist/auth/index.js",
-            "types": "./dist/auth/index.d.ts"
+        "./domain-router": {
+            "import": "./dist/domain-router/index.js",
+            "require": "./dist/domain-router/index.js",
+            "types": "./dist/domain-router/index.d.ts"
+        },
+        "./utils": {
+            "import": "./dist/utils/index.js",
+            "require": "./dist/utils/index.js",
+            "types": "./dist/utils/index.d.ts"
+        },
+        "./authentication": {
+            "import": "./dist/authentication/index.js",
+            "require": "./dist/authentication/index.js",
+            "types": "./dist/authentication/index.d.ts"
         }
     },
     "files": [

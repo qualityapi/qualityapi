@@ -4,12 +4,12 @@ import formatZodError from "./_internal/util-functions/formatZodError";
 import testContentHeader from "./_internal/util-functions/testContentHeader";
 import urlSearchParamsToObj from "./_internal/util-functions/urlSearchParamsToObj";
 
-import { Next } from "./Next";
 import { type Middleware } from "./Middleware";
 import { type ResponseBody } from "./ResponseBody";
 import { type Request } from "./Request";
 import { type Configuration } from "./Configuration";
-import { type User } from "./User";
+import { type User } from "./authentication";
+import { Next } from "./Next";
 import { RequestContentType as ContentType } from "./RequestContentType";
 import { Logger } from "./_internal/Logger";
 import { StatusCode } from "./StatusCode";
