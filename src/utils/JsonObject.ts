@@ -1,2 +1,2 @@
 /** Alias for reference empty JSON objects (`{}`). */
-export type JsonObject = Record<unknown, unknown>;
+export type JsonObject = Record<string | number | symbol, unknown>;

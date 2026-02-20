@@ -6,6 +6,13 @@ export namespace Casing {
     const KEBAB_CASE_REGEX = /[a-z]-[a-z]/g;
     const CAMEL_PASCAL_CASE_REGEX = /[a-z][A-Z]/g;
 
+    function isJsonObject(item: string | JsonObject | []): item is JsonObject {
+        return (
+            typeof item !== "string" &&
+            !Array.isArray(item)
+        );
+    }
+
     function _toCamelCase(text: string) {
         const snakeCasePoints = SNAKE_CASE_REGEX.exec(text)?.length ?? 0;
 
@@ -44,6 +51,8 @@ export namespace Casing {
             case (pascalCasePoints):
                 return result;
         }
+
+        return text;
     }
 
     export function toCamelCase<T extends string | JsonObject | []>(item: T): T {
@@ -51,28 +60,16 @@ export namespace Casing {
             return _toCamelCase(item) as T;
         else if (Array.isArray(item)) {
             return item.map(i =>
-                !!i &&
-                !Array.isArray(i) &&
-                typeof i === "object"
+                !!i && isJsonObject(i)
                     ? toCamelCase(i)
                     : i
             ) as T;
         }
         else {
-            let result = {};
+            const result: JsonObject = {};
 
-            const entries = Object.entries(item);
-
-            for (const [key, value] of entries) {
-                result = {
-                    ...result,
-                    [`${_toCamelCase(key)}`]:
-                        !!value &&
-                        !Array.isArray(value) &&
-                        typeof value === "object"
-                            ? _toCamelCase(value)
-                            : value
-                }
+            for (const [key, value] of Object.entries(item)) {
+                result[_toCamelCase(key)] = value;
             }
 
             return result as T;
