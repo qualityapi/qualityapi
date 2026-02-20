@@ -1,4 +1,4 @@
-import type { EmptyJsonObject } from "./EmptyJsonObject";
+import { type JsonObject } from "./JsonObject";
 
 export namespace Casing {
 
@@ -46,7 +46,7 @@ export namespace Casing {
         }
     }
 
-    export function toCamelCase<T extends string | EmptyJsonObject | []>(item: T): T {
+    export function toCamelCase<T extends string | JsonObject | []>(item: T): T {
         if (typeof item === "string")
             return _toCamelCase(item) as T;
         else if (Array.isArray(item)) {

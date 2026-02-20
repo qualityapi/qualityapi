@@ -1,8 +1,8 @@
-import { type EmptyJsonObject } from "./utils";
+import { type JsonObject } from "./utils";
 
 export type ResponseBody =
     [] |
-    EmptyJsonObject |
+    JsonObject |
     Blob |
     string |
     number;
