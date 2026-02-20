@@ -1,3 +1,5 @@
+import type { EmptyJsonObject } from "./EmptyJsonObject";
+
 export namespace Casing {
 
     const SNAKE_CASE_REGEX = /[a-z]_[a-z]/g;
@@ -21,19 +23,19 @@ export namespace Casing {
 
         const split = text.split("");
 
-        let result = `${split[0].toLowerCase()}${split.splice(1).join("")}`;
+        const result = `${split[0].toLowerCase()}${split.splice(1).join("")}`;
 
         switch (highest) {
             case (snakeCasePoints):
                 return result.replace(SNAKE_CASE_REGEX, ss => {
-                    const [a, _, b] = ss.split("");
+                    const [a,, b] = ss.split("");
 
                     return `${a.toLowerCase()}${b.toUpperCase()}`;
                 });
 
             case (kebabCasePoints):
                 return result.replace(KEBAB_CASE_REGEX, ss => {
-                    const [a, _, b] = ss.split("");
+                    const [a,, b] = ss.split("");
 
                     return `${a.toLowerCase()}${b.toUpperCase()}`;
                 });
@@ -44,7 +46,7 @@ export namespace Casing {
         }
     }
 
-    export function toCamelCase<T extends string | {} | []>(item: T): T {
+    export function toCamelCase<T extends string | EmptyJsonObject | []>(item: T): T {
         if (typeof item === "string")
             return _toCamelCase(item) as T;
         else if (Array.isArray(item)) {

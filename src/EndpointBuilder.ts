@@ -5,7 +5,6 @@ import testContentHeader from "./_internal/util-functions/testContentHeader";
 import urlSearchParamsToObj from "./_internal/util-functions/urlSearchParamsToObj";
 
 import { type Middleware } from "./Middleware";
-import { type ResponseBody } from "./ResponseBody";
 import { type Request } from "./Request";
 import { type Configuration } from "./Configuration";
 import { type User } from "./authentication";
@@ -26,11 +25,17 @@ export class EndpointBuilder<
 
     private config: Configuration = InternalStore.get<Configuration>(CONFIGURATION_STORE_KEY);
 
-    private middlewares: Middleware<any>[] = [];
+    private middlewares: Middleware<boolean>[] = [];
+
     private user: User | null = null;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private _body: any = null;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private _params: any = null;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private _searchParams: any = null;
 
     private _contentType: ContentType | null;
@@ -49,22 +54,18 @@ export class EndpointBuilder<
         };
     }
 
-    private async parseRequestBody(request: globalThis.Request) {
-        return new Promise<any>(async (resolve, reject) => {
-            try {
-                switch (this._contentType) {
-                    case ContentType.JSON: return resolve(await request.json());
-                    case ContentType.Blob: return resolve(await request.blob());
-                    case ContentType.Bytes: return resolve(await request.bytes());
-                    case ContentType.Text: return resolve(await request.text());
-                    case ContentType.ArrayBuffer: return resolve(await request.arrayBuffer());
-                    case ContentType.FormData: return resolve(await request.formData());
+    private parseRequestBody(request: globalThis.Request) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return new Promise<any>(resolve => {
+            switch (this._contentType) {
+                case ContentType.JSON: return request.json();
+                case ContentType.Blob: return request.blob();
+                case ContentType.Bytes: return request.bytes();
+                case ContentType.Text: return request.text();
+                case ContentType.ArrayBuffer: return request.arrayBuffer();
+                case ContentType.FormData: return request.formData();
 
-                    default: return resolve(null);
-                }
-            }
-            catch {
-                reject();
+                default: return resolve(null);
             }
         });
     }
@@ -206,8 +207,8 @@ export class EndpointBuilder<
      * Defines the final function of the endpoint.
      * This returns a Next.js-endpoint-compatible function with all middleware compiled.
      */
-    public endpoint<T extends ResponseBody>(fn: (data: Request<Authenticated, Body, Params, SearchParams>) => (Response | Promise<Response>)) {
-        return async (nextRequest: globalThis.Request, context: { params: Promise<{}> }) => {
+    public endpoint(fn: (data: Request<Authenticated, Body, Params, SearchParams>) => (Response | Promise<Response>)) {
+        return async (nextRequest: globalThis.Request, context: { params: Promise<object> }) => {
             this.user = await this.config.authentication?.authenticate(nextRequest) ?? null;
 
             if (nextRequest.method.toLowerCase() === "get")

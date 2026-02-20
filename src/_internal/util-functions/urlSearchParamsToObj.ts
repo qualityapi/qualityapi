@@ -1,5 +1,5 @@
 function urlSearchParamsToObj(urlSearchParams: URLSearchParams) {
-    let result: { [_: string]: any } = {};
+    const result: { [_: string]: unknown } = {};
 
     for (const key of urlSearchParams.keys()) {
         const value = urlSearchParams.getAll(key);
