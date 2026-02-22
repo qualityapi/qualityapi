@@ -1,4 +1,4 @@
-import { type User } from "./User";
+import { type User } from "./authentication";
 
 export type Request<
     Authenticated extends boolean,
@@ -9,6 +9,7 @@ export type Request<
 
     /**
      * If authenticated, is set to the authenticated user.
+     *
      * This can be mutated through module augmentation, and is `{}` by default.
      */
     user: Authenticated extends true ? User : (User | null);
@@ -19,7 +20,11 @@ export type Request<
     /** The request parameters (slugs). Use the `.params` middleware to validate this through your Zod schema. */
     params: Params;
 
-    /** The request search parameters (query parameters). Use the `.searchParams` middleware to validate this through your Zod schema. */
+    /**
+     * The request search parameters (query parameters).
+     *
+     * Use the `.searchParams` middleware to validate this through your Zod schema.
+     */
     searchParams: SearchParams;
 
     /** The raw Next.js request. */

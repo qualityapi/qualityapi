@@ -1,8 +1,17 @@
+import { type JsonObject } from "./JsonObject";
+
 export namespace Casing {
 
     const SNAKE_CASE_REGEX = /[a-z]_[a-z]/g;
     const KEBAB_CASE_REGEX = /[a-z]-[a-z]/g;
     const CAMEL_PASCAL_CASE_REGEX = /[a-z][A-Z]/g;
+
+    function isJsonObject(item: string | JsonObject | []): item is JsonObject {
+        return (
+            typeof item !== "string" &&
+            !Array.isArray(item)
+        );
+    }
 
     function _toCamelCase(text: string) {
         const snakeCasePoints = SNAKE_CASE_REGEX.exec(text)?.length ?? 0;
@@ -21,19 +30,19 @@ export namespace Casing {
 
         const split = text.split("");
 
-        let result = `${split[0].toLowerCase()}${split.splice(1).join("")}`;
+        const result = `${split[0].toLowerCase()}${split.splice(1).join("")}`;
 
         switch (highest) {
             case (snakeCasePoints):
                 return result.replace(SNAKE_CASE_REGEX, ss => {
-                    const [a, _, b] = ss.split("");
+                    const [a,, b] = ss.split("");
 
                     return `${a.toLowerCase()}${b.toUpperCase()}`;
                 });
 
             case (kebabCasePoints):
                 return result.replace(KEBAB_CASE_REGEX, ss => {
-                    const [a, _, b] = ss.split("");
+                    const [a,, b] = ss.split("");
 
                     return `${a.toLowerCase()}${b.toUpperCase()}`;
                 });
@@ -42,35 +51,25 @@ export namespace Casing {
             case (pascalCasePoints):
                 return result;
         }
+
+        return text;
     }
 
-    export function toCamelCase<T extends string | {} | []>(item: T): T {
+    export function toCamelCase<T extends string | JsonObject | []>(item: T): T {
         if (typeof item === "string")
             return _toCamelCase(item) as T;
         else if (Array.isArray(item)) {
             return item.map(i =>
-                !!i &&
-                !Array.isArray(i) &&
-                typeof i === "object"
-                    ? _toCamelCase(i)
+                !!i && isJsonObject(i)
+                    ? toCamelCase(i)
                     : i
             ) as T;
         }
         else {
-            let result = {};
+            const result: JsonObject = {};
 
-            const entries = Object.entries(item);
-
-            for (const [key, value] of entries) {
-                result = {
-                    ...result,
-                    [`${_toCamelCase(key)}`]:
-                        !!value &&
-                        !Array.isArray(value) &&
-                        typeof value === "object"
-                            ? _toCamelCase(value)
-                            : value
-                }
+            for (const [key, value] of Object.entries(item)) {
+                result[_toCamelCase(key)] = value;
             }
 
             return result as T;

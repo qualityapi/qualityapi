@@ -1,6 +1,6 @@
 {
     "name": "qualityapi",
-    "version": "1.0.0-alpha.5",
+    "version": "1.0.0-alpha.6",
     "type": "module",
     "main": "dist/index.js",
     "types": "dist/types/index.d.ts",
@@ -10,10 +10,20 @@
             "require": "./dist/index.js",
             "types": "./dist/index.d.ts"
         },
-        "./auth": {
-            "import": "./dist/auth/index.js",
-            "require": "./dist/auth/index.js",
-            "types": "./dist/auth/index.d.ts"
+        "./domain-router": {
+            "import": "./dist/domain-router/index.js",
+            "require": "./dist/domain-router/index.js",
+            "types": "./dist/domain-router/index.d.ts"
+        },
+        "./utils": {
+            "import": "./dist/utils/index.js",
+            "require": "./dist/utils/index.js",
+            "types": "./dist/utils/index.d.ts"
+        },
+        "./authentication": {
+            "import": "./dist/authentication/index.js",
+            "require": "./dist/authentication/index.js",
+            "types": "./dist/authentication/index.d.ts"
         }
     },
     "files": [
@@ -21,21 +31,32 @@
     ],
     "scripts": {
         "build": "tsc",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "npm run build",
+        "prepare": "husky"
     },
     "dependencies": {
         "next": "^16.1.6",
         "zod": "^4.3.6"
     },
     "devDependencies": {
+        "@eslint/js": "^10.0.1",
         "@types/next": "^8.0.7",
         "@types/node": "^25.1.0",
+        "eslint": "^10.0.0",
+        "globals": "^17.3.0",
+        "husky": "^9.1.7",
+        "jiti": "^2.6.1",
+        "lint-staged": "^16.2.7",
         "ts-node": "^10.9.2",
-        "typescript": "^5.9.3"
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.56.0"
     },
     "repository": {
         "url": "https://github.com/qualityapi/qualityapi",
         "type": "git"
     },
-    "license": "Apache-2.0"
+    "license": "Apache-2.0",
+    "lint-staged": {
+        "src/**/*.{ts,tsx}": "eslint"
+    }
 }

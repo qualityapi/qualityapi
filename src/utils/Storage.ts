@@ -1,5 +1,6 @@
-import { END_USER_STORAGE_NAMESPACE_KEY } from "./_internal/globals";
+import { END_USER_STORAGE_NAMESPACE_KEY } from "../_internal/globals";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type StorageMap = Map<string, any>;
 
 /**
@@ -11,11 +12,12 @@ export namespace Storage {
 
     function getMap() {
         if (!(END_USER_STORAGE_NAMESPACE_KEY in globalThis))
-            // @ts-ignore
+            // @ts-expect-error To suppress `globalThis` throwing error when setting custom property
             globalThis[END_USER_STORAGE_NAMESPACE_KEY] =
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 new Map<string, any>();
 
-        // @ts-ignore
+        // @ts-expect-error To suppress `globalThis` throwing error when setting custom property
         return globalThis[END_USER_STORAGE_NAMESPACE_KEY] as StorageMap;
     }
 
@@ -25,6 +27,7 @@ export namespace Storage {
     }
 
     /** Set a value in the in-memory, persistent storage. */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     export function set(key: string, value: any) {
         getMap().set(key, value);
     }
