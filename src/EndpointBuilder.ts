@@ -81,7 +81,7 @@ export class EndpointBuilder<
 
     /** Adds internal middleware that verifies the incoming request's session. */
     public authenticate() {
-        if (!this.config.authentication)
+        if (!this.config?.authentication)
             Logger.warn("`.authenticate` middleware is defined, but authentication is not configured!");
 
         this.middlewares.push(async () => {
@@ -210,7 +210,7 @@ export class EndpointBuilder<
      */
     public endpoint(fn: (data: Request<Authenticated, Body, Params, SearchParams>) => (Response | Promise<Response>)) {
         return async (nextRequest: globalThis.Request, context: { params: Promise<object> }) => {
-            this.session = await this.config.authentication?.authenticate(nextRequest) ?? null;
+            this.session = await this.config?.authentication?.authenticate?.(nextRequest) ?? null;
 
             if (nextRequest.method.toLowerCase() === "get")
                 this._body = null;
