@@ -23,7 +23,7 @@ export class EndpointBuilder<
     SearchParams
 > {
 
-    private config: Configuration = InternalStore.get<Configuration>(CONFIGURATION_STORE_KEY);
+    private config: Configuration;
 
     private middlewares: Middleware<boolean>[] = [];
 
@@ -42,6 +42,8 @@ export class EndpointBuilder<
 
     constructor(contentType?: ContentType) {
         this._contentType = contentType ?? null;
+
+        this.config = InternalStore.get<Configuration>(CONFIGURATION_STORE_KEY);
     }
 
     private getRequestData(nextRequest: globalThis.Request): Request<Authenticated, Body, Params, SearchParams> {
