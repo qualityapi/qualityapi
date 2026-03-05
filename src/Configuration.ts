@@ -1,5 +1,5 @@
 import { type Awaitable } from "./utils";
-import { type User } from "./authentication";
+import { type Session } from "./authentication";
 import { type NextRequest } from "next/server";
 
 export type Configuration = {
@@ -8,13 +8,13 @@ export type Configuration = {
     authentication?: {
 
         /**
-         * Authenticates the user from the incoming request.
+         * Authenticates the session from the incoming request.
          *
-         * This determines the `user` property of the request data when building an endpoint.
+         * This determines the `session` property of the request data when building an endpoint.
          *
-         * Use module augmentation to mutate the `User` interface to fit your needs.
+         * Use module augmentation to mutate the `Session` interface to fit your needs.
          */
-        authenticate: (request: Request) => Awaitable<User | null>;
+        authenticate: (request: Request) => Awaitable<Session | null>;
 
     };
 

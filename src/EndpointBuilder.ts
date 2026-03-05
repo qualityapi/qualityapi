@@ -7,7 +7,7 @@ import urlSearchParamsToObj from "./_internal/util-functions/urlSearchParamsToOb
 import { type Middleware } from "./Middleware";
 import { type Request } from "./Request";
 import { type Configuration } from "./Configuration";
-import { type User } from "./authentication";
+import { type Session } from "./authentication";
 import { Next } from "./Next";
 import { RequestContentType as ContentType } from "./RequestContentType";
 import { Logger } from "./_internal/Logger";
@@ -27,7 +27,7 @@ export class EndpointBuilder<
 
     private middlewares: Middleware<boolean>[] = [];
 
-    private user: User | null = null;
+    private session: Session | null = null;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private _body: any = null;
@@ -46,7 +46,7 @@ export class EndpointBuilder<
 
     private getRequestData(nextRequest: globalThis.Request): Request<Authenticated, Body, Params, SearchParams> {
         return {
-            user: this.user!,
+            session: this.session!,
             body: this._body,
             params: this._params,
             searchParams: this._searchParams,
@@ -58,12 +58,12 @@ export class EndpointBuilder<
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return new Promise<any>(resolve => {
             switch (this._contentType) {
-                case ContentType.JSON: return request.json();
-                case ContentType.Blob: return request.blob();
-                case ContentType.Bytes: return request.bytes();
-                case ContentType.Text: return request.text();
-                case ContentType.ArrayBuffer: return request.arrayBuffer();
-                case ContentType.FormData: return request.formData();
+                case ContentType.JSON: return resolve(request.json());
+                case ContentType.Blob: return resolve(request.blob());
+                case ContentType.Bytes: return resolve(request.bytes());
+                case ContentType.Text: return resolve(request.text());
+                case ContentType.ArrayBuffer: return resolve(request.arrayBuffer());
+                case ContentType.FormData: return resolve(request.formData());
 
                 default: return resolve(null);
             }
@@ -77,13 +77,13 @@ export class EndpointBuilder<
         return this;
     }
 
-    /** Adds internal middleware that verifies end user's authentication. */
+    /** Adds internal middleware that verifies the incoming request's session. */
     public authenticate() {
         if (!this.config.authentication)
             Logger.warn("`.authenticate` middleware is defined, but authentication is not configured!");
 
         this.middlewares.push(async () => {
-            if (!this.user) return new Response(undefined, { status: StatusCode.Unauthorized });
+            if (!this.session) return new Response(undefined, { status: StatusCode.Unauthorized });
 
             return QualityApi.next();
         });
@@ -102,7 +102,6 @@ export class EndpointBuilder<
             Logger.warn("`.body` middleware is defined, but no content type is given!");
 
         this.middlewares.push(async ({ body }) => {
-
             const parseResult = await schema.safeParseAsync(body);
 
             if (!parseResult.success) {
@@ -209,7 +208,7 @@ export class EndpointBuilder<
      */
     public endpoint(fn: (data: Request<Authenticated, Body, Params, SearchParams>) => (Response | Promise<Response>)) {
         return async (nextRequest: globalThis.Request, context: { params: Promise<object> }) => {
-            this.user = await this.config.authentication?.authenticate(nextRequest) ?? null;
+            this.session = await this.config.authentication?.authenticate(nextRequest) ?? null;
 
             if (nextRequest.method.toLowerCase() === "get")
                 this._body = null;
