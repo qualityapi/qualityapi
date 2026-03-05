@@ -32,7 +32,9 @@ namespace QualityApi {
 
     /**
      * Defines the required configuration for Quality API.
-     * This should ideally be invoked inside the `next.config.[js|ts]` file.
+     * This should ideally be invoked inside the `register` function in the  `instrumentation.[js|ts]` file.
+     *
+     * See [Instrumentation | Next.js](https://nextjs.org/docs/app/guides/instrumentation)
      */
     export function configure(options: Configuration) {
         InternalStore.set(CONFIGURATION_STORE_KEY, options);

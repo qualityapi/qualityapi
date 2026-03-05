@@ -58,12 +58,12 @@ export class EndpointBuilder<
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return new Promise<any>(resolve => {
             switch (this._contentType) {
-                case ContentType.JSON: return request.json();
-                case ContentType.Blob: return request.blob();
-                case ContentType.Bytes: return request.bytes();
-                case ContentType.Text: return request.text();
-                case ContentType.ArrayBuffer: return request.arrayBuffer();
-                case ContentType.FormData: return request.formData();
+                case ContentType.JSON: return resolve(request.json());
+                case ContentType.Blob: return resolve(request.blob());
+                case ContentType.Bytes: return resolve(request.bytes());
+                case ContentType.Text: return resolve(request.text());
+                case ContentType.ArrayBuffer: return resolve(request.arrayBuffer());
+                case ContentType.FormData: return resolve(request.formData());
 
                 default: return resolve(null);
             }
@@ -102,7 +102,6 @@ export class EndpointBuilder<
             Logger.warn("`.body` middleware is defined, but no content type is given!");
 
         this.middlewares.push(async ({ body }) => {
-
             const parseResult = await schema.safeParseAsync(body);
 
             if (!parseResult.success) {
